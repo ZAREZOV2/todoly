@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import type { NextRequest } from "next/server"
+import { getSessionFromToken } from "@/lib/auth-edge"
 
-// Force Node.js runtime to avoid Edge Function size limits
-export const runtime = 'nodejs'
-
-export default auth((req) => {
-  const session = req.auth
+export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
 
   // Allow public assets and auth routes
@@ -19,7 +16,9 @@ export default auth((req) => {
     return NextResponse.next()
   }
 
-  // Require authentication for all other routes
+  // Check authentication using lightweight token check
+  const session = await getSessionFromToken(req)
+
   if (!session) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
@@ -27,7 +26,7 @@ export default auth((req) => {
   // Admin routes - basic permission check
   // Detailed checks are done in the page components
   if (path.startsWith("/admin")) {
-    const permissions = (session.user?.permissions as string[]) || []
+    const permissions = session.user?.permissions || []
     if (
       !permissions.includes("users.manage") &&
       !permissions.includes("roles.manage")
@@ -37,7 +36,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: [
