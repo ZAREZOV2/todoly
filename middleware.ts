@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 
+// Force Node.js runtime to avoid Edge Function size limits
+export const runtime = 'nodejs'
+
 export default auth((req) => {
   const session = req.auth
   const path = req.nextUrl.pathname

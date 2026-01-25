@@ -1,11 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Ensure middleware runs on Node.js runtime, not Edge
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
-  },
+  // Middleware will use Node.js runtime (specified in middleware.ts)
 }
 
 module.exports = nextConfig
