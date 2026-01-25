@@ -1,29 +1,26 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Get DATABASE_URL from environment
-// Priority: DATABASE_URL > POSTGRES_PRISMA_URL > POSTGRES_URL
-const databaseUrl = 
-  process.env.DATABASE_URL || 
-  process.env.POSTGRES_PRISMA_URL || 
-  process.env.POSTGRES_URL ||
-  process.env.POSTGRES_URL_NON_POOLING
+// Get STORAGE_POSTGRES_URL from environment (Supabase via Vercel)
+const databaseUrl = process.env.STORAGE_POSTGRES_URL
 
 if (!databaseUrl) {
-  console.warn('⚠️ DATABASE_URL is not set. Please configure it in Vercel environment variables.')
+  console.warn('⚠️ STORAGE_POSTGRES_URL is not set. Please configure it in Vercel environment variables.')
 }
 
 // Configure Prisma for connection pooling (Supabase)
-const prismaClientOptions = {
+const prismaClientOptions: Prisma.PrismaClientOptions = {
   datasources: {
     db: {
       url: databaseUrl,
     },
   },
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  log: process.env.NODE_ENV === 'development' 
+    ? (['query', 'error', 'warn'] as Prisma.LogLevel[])
+    : (['error'] as Prisma.LogLevel[]),
 }
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient(prismaClientOptions)
