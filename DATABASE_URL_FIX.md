@@ -1,59 +1,52 @@
 # Исправление DATABASE_URL для Vercel
 
 ## Проблема
-Prisma не может распарсить connection string из-за недопустимых символов или неправильного формата.
+Прямой хост Supabase недоступен из Vercel. Нужно использовать pooler URL.
 
-## Решение
+## Решение - Используйте POSTGRES_PRISMA_URL
 
-В настройках Vercel (Settings → Environment Variables) используйте **один из этих вариантов**:
-
-### Вариант 1: Прямой URL без pooler (РЕКОМЕНДУЕТСЯ для Prisma)
+В настройках Vercel (Settings → Environment Variables) используйте **POSTGRES_PRISMA_URL** из ваших данных Supabase:
 
 ```
-DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@db.ljhkywrprytafjddkbkc.supabase.co:5432/postgres?sslmode=require
+DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
 ```
 
-### Вариант 2: POSTGRES_URL_NON_POOLING (из ваших данных)
+Это специальный URL для Prisma, который использует connection pooler Supabase.
+
+## Альтернативный вариант (если первый не работает)
+
+Попробуйте POSTGRES_URL (тоже с pooler):
 
 ```
-DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
 ```
-
-### Вариант 3: Если пароль содержит специальные символы
-
-Если в пароле есть `@`, `#`, `$`, `%`, `&`, `+`, `=` и т.д., закодируйте их в URL:
-- `@` → `%40`
-- `#` → `%23`
-- `$` → `%24`
-- `%` → `%25`
-- `&` → `%26`
-- `+` → `%2B`
-- `=` → `%3D`
 
 ## Важно
 
-1. **НЕ используйте pooler URL (порт 6543) для Prisma** - используйте прямой порт 5432
-2. **Убедитесь, что нет лишних пробелов** в начале или конце значения
-3. **Используйте `POSTGRES_URL_NON_POOLING`** из ваших данных Supabase
+1. **Используйте pooler URL** (порт 6543) для подключения из Vercel
+2. **Добавьте параметр `pgbouncer=true`** для правильной работы с Prisma
+3. **НЕ используйте прямой хост** `db.ljhkywrprytafjddkbkc.supabase.co` - он недоступен из внешних сервисов
 
-## Проверка
+## Шаги для исправления
 
-После обновления переменной:
+1. Откройте Vercel → Settings → Environment Variables
+2. Найдите или создайте `DATABASE_URL`
+3. Установите значение:
+   ```
+   postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+   ```
+4. Убедитесь, что выбраны все окружения (Production, Preview, Development)
+5. Сохраните
+6. Сделайте **Redeploy** проекта
 
-1. Сделайте **Redeploy** в Vercel
-2. Проверьте health endpoint: `https://your-app.vercel.app/api/health`
-3. Попробуйте зарегистрироваться снова
+## Проверка подключения
 
-## Формат правильного URL
+После обновления проверьте:
+- Health endpoint: `https://your-app.vercel.app/api/health`
+- Попробуйте зарегистрироваться снова
 
-```
-postgres://[USER]:[PASSWORD]@[HOST]:[PORT]/[DATABASE]?[PARAMS]
-```
+## Если проблема сохраняется
 
-Где:
-- `[USER]` = `postgres.ljhkywrprytafjddkbkc`
-- `[PASSWORD]` = `2x3sN47tNO8ep1mp` (без экранирования, если нет спецсимволов)
-- `[HOST]` = `db.ljhkywrprytafjddkbkc.supabase.co` (или `aws-1-us-east-1.pooler.supabase.com`)
-- `[PORT]` = `5432` (НЕ 6543 для Prisma!)
-- `[DATABASE]` = `postgres`
-- `[PARAMS]` = `sslmode=require`
+1. Проверьте, что база данных Supabase активна
+2. Убедитесь, что в настройках Supabase разрешены подключения из внешних источников
+3. Проверьте, что пароль правильный (без лишних пробелов)
