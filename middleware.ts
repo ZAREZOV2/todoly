@@ -5,7 +5,7 @@ export default auth((req) => {
   const session = req.auth
   const path = req.nextUrl.pathname
 
-  // Protect all routes except auth pages and public assets
+  // Allow public assets and auth routes
   if (
     path.startsWith("/login") ||
     path.startsWith("/register") ||
@@ -21,7 +21,8 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  // Admin routes require users.manage or roles.manage permission
+  // Admin routes - basic permission check
+  // Detailed checks are done in the page components
   if (path.startsWith("/admin")) {
     const permissions = (session.user?.permissions as string[]) || []
     if (
@@ -36,5 +37,15 @@ export default auth((req) => {
 })
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/auth (NextAuth routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files (images, etc.)
+     */
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 }
