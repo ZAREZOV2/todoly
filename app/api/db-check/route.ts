@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET() {
   const envVars = {
+    NEON_POSTGRES_PRISMA_URL: process.env.NEON_POSTGRES_PRISMA_URL ? "✅ Set" : "❌ Not set",
+    NEON_DATABASE_URL: process.env.NEON_DATABASE_URL ? "✅ Set" : "❌ Not set",
     POSTGRES_PRISMA_URL: process.env.POSTGRES_PRISMA_URL ? "✅ Set" : "❌ Not set",
     POSTGRES_URL: process.env.POSTGRES_URL ? "✅ Set" : "❌ Not set",
     POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING ? "✅ Set" : "❌ Not set",
@@ -11,7 +13,10 @@ export async function GET() {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL ? "✅ Set" : "❌ Not set",
   }
 
-  const url = process.env.POSTGRES_PRISMA_URL
+  const url =
+    process.env.NEON_POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.DATABASE_URL
 
   // Show first 60 chars of Neon pooled URL (for security)
   const dbUrlPreview = url ? url.substring(0, 60) + "..." : "Not set"

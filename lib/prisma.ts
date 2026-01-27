@@ -15,13 +15,14 @@ type GlobalPrisma = typeof globalThis & {
 
 const globalForPrisma = globalThis as GlobalPrisma
 
-const databaseUrl = process.env.POSTGRES_PRISMA_URL
+const databaseUrl =
+  process.env.NEON_POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.DATABASE_URL
 
 if (!databaseUrl) {
-  // In this project Prisma schema already uses env("POSTGRES_PRISMA_URL"),
-  // but we explicitly require it here to avoid confusing runtime errors.
   console.error(
-    "❌ POSTGRES_PRISMA_URL is not set. Neon pooled connection string must be provided in the environment (Vercel Project Settings / Environment Variables)."
+    "❌ NEON_POSTGRES_PRISMA_URL (or POSTGRES_PRISMA_URL / DATABASE_URL) is not set. Neon pooled connection string must be provided in the environment (Vercel Project Settings / Environment Variables)."
   )
 }
 
