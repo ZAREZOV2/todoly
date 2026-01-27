@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { getSessionFromToken } from "@/lib/auth-edge"
+import { auth } from "@/lib/auth"
 
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
@@ -16,8 +16,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check authentication using lightweight token check
-  const session = await getSessionFromToken(req)
+  // Check authentication using NextAuth auth() helper (JWT-based session)
+  const session = await auth()
 
   if (!session) {
     return NextResponse.redirect(new URL("/login", req.url))
