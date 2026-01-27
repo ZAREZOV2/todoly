@@ -48,6 +48,11 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (images, etc.)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Apply middleware only to page routes, not API routes.
+    // Exclude:
+    // - all /api/* (API routes, including NextAuth and debug endpoints)
+    // - _next/static, _next/image (Next.js internals)
+    // - favicon and static assets
+    "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
