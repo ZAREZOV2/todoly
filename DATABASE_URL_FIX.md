@@ -8,7 +8,7 @@
 В настройках Vercel (Settings → Environment Variables) используйте **POSTGRES_PRISMA_URL** из ваших данных Supabase:
 
 ```
-DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+DATABASE_URL=postgresql://postgres.ljhkywrprytafjddkbkc:UkdoL7NwIjQGMaOH@aws-1-us-east-1.pooler.supabase.com:5432/postgres
 ```
 
 Это специальный URL для Prisma, который использует connection pooler Supabase.
@@ -18,7 +18,7 @@ DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-
 Попробуйте POSTGRES_URL (тоже с pooler):
 
 ```
-DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+DATABASE_URL=postgresql://postgres.ljhkywrprytafjddkbkc:UkdoL7NwIjQGMaOH@aws-1-us-east-1.pooler.supabase.com:5432/postgres
 ```
 
 ## Важно
@@ -33,7 +33,7 @@ DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-
 2. Найдите или создайте `DATABASE_URL`
 3. Установите значение:
    ```
-   postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+   postgresql://postgres.ljhkywrprytafjddkbkc:UkdoL7NwIjQGMaOH@aws-1-us-east-1.pooler.supabase.com:5432/postgres
    ```
 4. Убедитесь, что выбраны все окружения (Production, Preview, Development)
 5. Сохраните

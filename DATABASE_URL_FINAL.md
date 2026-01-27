@@ -2,8 +2,8 @@
 
 ## Новые данные базы данных
 
-**Пароль:** `Ou0CXqYUNjcfoQ9M`  
-**URL шаблон:** `postgresql://postgres:[YOUR-PASSWORD]@db.ljhkywrprytafjddkbkc.supabase.co:5432/postgres`
+**Пароль:** `UkdoL7NwIjQGMaOH`  
+**URL шаблон:** `postgresql://postgres.ljhkywrprytafjddkbkc:[YOUR-PASSWORD]@aws-1-us-east-1.pooler.supabase.com:5432/postgres`
 
 ## Правильный DATABASE_URL для Vercel
 
@@ -12,16 +12,15 @@
 **Key:** `DATABASE_URL`  
 **Value:**
 ```
-postgresql://postgres:Ou0CXqYUNjcfoQ9M@db.ljhkywrprytafjddkbkc.supabase.co:5432/postgres?sslmode=require
+postgresql://postgres.ljhkywrprytafjddkbkc:UkdoL7NwIjQGMaOH@aws-1-us-east-1.pooler.supabase.com:5432/postgres
 ```
 
 ## Важно
 
 1. Используйте **postgresql://** (не postgres://)
-2. Пароль: `Ou0CXqYUNjcfoQ9M` (без пробелов)
-3. Хост: `db.ljhkywrprytafjddkbkc.supabase.co`
+2. Пароль: `UkdoL7NwIjQGMaOH` (без пробелов)
+3. Хост: `aws-1-us-east-1.pooler.supabase.com`
 4. Порт: `5432`
-5. Добавьте параметр `?sslmode=require` в конце
 
 ## Шаги
 

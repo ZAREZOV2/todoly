@@ -6,12 +6,12 @@
 
 ### База данных
 ```
-DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+DATABASE_URL=postgresql://postgres.ljhkywrprytafjddkbkc:UkdoL7NwIjQGMaOH@aws-1-us-east-1.pooler.supabase.com:5432/postgres
 ```
 
 **Или используйте POSTGRES_PRISMA_URL для лучшей совместимости:**
 ```
-DATABASE_URL=postgres://postgres.ljhkywrprytafjddkbkc:2x3sN47tNO8ep1mp@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+DATABASE_URL=postgresql://postgres.ljhkywrprytafjddkbkc:UkdoL7NwIjQGMaOH@aws-1-us-east-1.pooler.supabase.com:5432/postgres
 ```
 
 ### NextAuth
