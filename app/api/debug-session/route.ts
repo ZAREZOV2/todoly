@@ -1,13 +1,12 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { getToken } from "next-auth/jwt"
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const session = await auth()
 
     const token = await getToken({
-      // @ts-expect-error: Request from App Router is compatible enough
       req,
       secret: process.env.NEXTAUTH_SECRET,
     })
