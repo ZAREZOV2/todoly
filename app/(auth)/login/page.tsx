@@ -24,13 +24,17 @@ export default function LoginPage() {
         redirect: false,
       })
 
-      if (result?.error) {
+      console.log("signIn result:", result)
+
+      if (!result || result.error) {
         setError("Invalid email or password")
-      } else {
-        router.push("/")
-        router.refresh()
+        return
       }
+
+      router.push("/")
+      router.refresh()
     } catch (err) {
+      console.error("signIn error:", err)
       setError("An error occurred. Please try again.")
     } finally {
       setLoading(false)
