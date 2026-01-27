@@ -1,23 +1,45 @@
 import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function GET() {
   const envVars = {
-    STORAGE_POSTGRES_URL: process.env.STORAGE_POSTGRES_URL ? "✅ Set" : "❌ Not set",
-    STORAGE_POSTGRES_URL_NON_POOLING: process.env.STORAGE_POSTGRES_URL_NON_POOLING ? "✅ Set" : "❌ Not set",
+    POSTGRES_PRISMA_URL: process.env.POSTGRES_PRISMA_URL ? "✅ Set" : "❌ Not set",
+    POSTGRES_URL: process.env.POSTGRES_URL ? "✅ Set" : "❌ Not set",
+    POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING ? "✅ Set" : "❌ Not set",
     DATABASE_URL: process.env.DATABASE_URL ? "✅ Set (legacy)" : "❌ Not set",
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? "✅ Set" : "❌ Not set",
     NEXTAUTH_URL: process.env.NEXTAUTH_URL ? "✅ Set" : "❌ Not set",
   }
 
-  // Show first 50 chars of URLs (for security)
-  const dbUrlPreview = process.env.STORAGE_POSTGRES_URL 
-    ? process.env.STORAGE_POSTGRES_URL.substring(0, 50) + "..."
-    : "Not set"
+  const url = process.env.POSTGRES_PRISMA_URL
+
+  // Show first 60 chars of Neon pooled URL (for security)
+  const dbUrlPreview = url ? url.substring(0, 60) + "..." : "Not set"
+
+  let dbStatus: "connected" | "error" | "not_configured" = "not_configured"
+  let dbError: string | undefined
+
+  if (!url) {
+    dbStatus = "not_configured"
+  } else {
+    try {
+      await prisma.$queryRaw`SELECT 1`
+      dbStatus = "connected"
+    } catch (error: any) {
+      dbStatus = "error"
+      dbError = error?.message || "Unknown error"
+    }
+  }
 
   return NextResponse.json({
     environment: process.env.NODE_ENV,
     variables: envVars,
     databaseUrlPreview: dbUrlPreview,
-    message: "Check which database URL variables are available (Supabase via Vercel)",
+    database: {
+      status: dbStatus,
+      error: process.env.NODE_ENV === "development" ? dbError : undefined,
+    },
+    message:
+      "Neon PostgreSQL / Prisma diagnostic endpoint. Verify that POSTGRES_PRISMA_URL is set to the pooled connection string from Neon (with sslmode=require, channel_binding=require, connect_timeout=15).",
   })
 }

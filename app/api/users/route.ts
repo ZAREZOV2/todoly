@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/db"
+import { prisma } from "@/lib/prisma"
 import { checkPermission } from "@/lib/api-middleware"
 
 // GET /api/users - Get all users
