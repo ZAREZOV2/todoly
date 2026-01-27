@@ -21,18 +21,26 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        redirect: false, // ручная обработка редиректа
+        callbackUrl: "/", // целевая страница после логина
       })
 
       console.log("signIn result:", result)
 
-      if (!result || result.error) {
+      // Если по какой-то причине result не вернулся
+      if (!result) {
+        setError("Login failed. Please try again.")
+        return
+      }
+
+      // Ошибка авторизации от NextAuth
+      if (result.error || !result.ok) {
         setError("Invalid email or password")
         return
       }
 
-      router.push("/")
-      router.refresh()
+      // Успешный логин — жёсткий переход на главную
+      router.replace("/")
     } catch (err) {
       console.error("signIn error:", err)
       setError("An error occurred. Please try again.")
