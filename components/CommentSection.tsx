@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { useSession } from "next-auth/react"
-import { TaskWithRelations } from "@/lib/types"
+import { useSessionWithPermissions } from "@/lib/use-session"
+import type { TaskWithRelations } from "@/lib/types"
 
 interface CommentSectionProps {
   taskId: string
@@ -10,7 +10,7 @@ interface CommentSectionProps {
 }
 
 export function CommentSection({ taskId, comments: initialComments }: CommentSectionProps) {
-  const { data: session } = useSession()
+  const { data: session } = useSessionWithPermissions()
   const [comments, setComments] = useState(initialComments)
   const [newComment, setNewComment] = useState("")
   const [loading, setLoading] = useState(false)
@@ -107,7 +107,8 @@ export function CommentSection({ taskId, comments: initialComments }: CommentSec
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Edit comment..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <div className="flex gap-2">
                   <button
@@ -179,7 +180,7 @@ export function CommentSection({ taskId, comments: initialComments }: CommentSec
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <button
             type="submit"

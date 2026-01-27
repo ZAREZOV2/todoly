@@ -1,12 +1,12 @@
 "use client"
 
-import { TaskStatus, TaskPriority } from "@prisma/client"
+import type { TaskStatus, TaskPriority } from "@prisma/client"
 import { useTaskStore } from "@/store/taskStore"
-import { useSession } from "next-auth/react"
+import { useSessionWithPermissions } from "@/lib/use-session"
 
 export function Filters() {
   const { filters, setFilter, clearFilters } = useTaskStore()
-  const { data: session } = useSession()
+  const { data: session } = useSessionWithPermissions()
 
   const users = session?.user ? [session.user] : []
 
@@ -22,7 +22,7 @@ export function Filters() {
             value={filters.search}
             onChange={(e) => setFilter({ search: e.target.value })}
             placeholder="Search tasks..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
@@ -37,7 +37,7 @@ export function Filters() {
                 status: e.target.value ? (e.target.value as TaskStatus) : null,
               })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">All Statuses</option>
             <option value="TODO">TODO</option>
@@ -60,7 +60,7 @@ export function Filters() {
                   : null,
               })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">All Priorities</option>
             <option value="HIGH">High</option>

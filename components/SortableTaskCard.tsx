@@ -2,15 +2,16 @@
 
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { TaskWithRelations } from "@/lib/types"
+import type { TaskWithRelations } from "@/lib/types"
 import { TaskCard } from "./TaskCard"
 
 interface SortableTaskCardProps {
   task: TaskWithRelations
   onClick: () => void
+  delay?: number
 }
 
-export function SortableTaskCard({ task, onClick }: SortableTaskCardProps) {
+export function SortableTaskCard({ task, onClick, delay = 0 }: SortableTaskCardProps) {
   const {
     attributes,
     listeners,
@@ -28,7 +29,7 @@ export function SortableTaskCard({ task, onClick }: SortableTaskCardProps) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} onClick={onClick} />
+      <TaskCard task={task} onClick={onClick} delay={delay} />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { create } from "zustand"
-import { TaskStatus, TaskPriority } from "@prisma/client"
-import { TaskWithRelations } from "@/lib/types"
+import type { TaskStatus, TaskPriority } from "@prisma/client"
+import type { TaskWithRelations } from "@/lib/types"
 
 interface TaskStore {
   tasks: TaskWithRelations[]

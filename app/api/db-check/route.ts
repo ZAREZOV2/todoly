@@ -9,8 +9,8 @@ export async function GET() {
     POSTGRES_URL: process.env.POSTGRES_URL ? "✅ Set" : "❌ Not set",
     POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING ? "✅ Set" : "❌ Not set",
     DATABASE_URL: process.env.DATABASE_URL ? "✅ Set (legacy)" : "❌ Not set",
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? "✅ Set" : "❌ Not set",
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL ? "✅ Set" : "❌ Not set",
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ? "✅ Set" : "❌ Not set",
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ? "✅ Set" : "❌ Not set",
   }
 
   const url =

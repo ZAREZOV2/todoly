@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -18,21 +19,21 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+      const result = await authClient.signUp.email({
+        email,
+        password,
+        name: name?.trim() || "User",
+        callbackURL: "/",
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || "Registration failed")
+      if (result.error) {
+        setError(result.error.message ?? "Registration failed")
         return
       }
 
-      // Redirect to login after successful registration
-      router.push("/login?registered=true")
+      if (result.data) {
+        router.replace("/")
+      }
     } catch (err) {
       setError("An error occurred. Please try again.")
     } finally {
@@ -63,7 +64,7 @@ export default function RegisterPage() {
                 id="name"
                 name="name"
                 type="text"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -79,7 +80,7 @@ export default function RegisterPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -95,9 +96,9 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                minLength={6}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Password (min 6 characters)"
+                minLength={8}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Password (min 8 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

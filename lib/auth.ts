@@ -1,92 +1,58 @@
-import NextAuth from "next-auth"
-import type { NextAuthConfig } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { prisma } from "./db"
-import bcrypt from "bcryptjs"
+import { betterAuth } from "better-auth"
+import { prismaAdapter } from "better-auth/adapters/prisma"
+import { prisma } from "./prisma"
 import { getUserPermissions } from "./permissions"
 
-export const authOptions: NextAuthConfig = {
-  // Ensure the same secret is used everywhere (API routes, middleware, JWT)
-  secret: process.env.NEXTAUTH_SECRET,
+export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET,
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "USER",
+        input: false,
+      },
+    },
+  },
   session: {
-    strategy: "jwt",
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes
+    },
+    updateAge: 60 * 60 * 24, // Update session every 24 hours
   },
-  pages: {
-    signIn: "/login",
-    signOut: "/login",
-  },
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        try {
-          if (!credentials?.email || !credentials?.password) {
-            console.warn("[auth][credentials] Missing email or password")
-            return null
-          }
-
-          const email = credentials.email as string
-          const password = credentials.password as string
-
-          console.log("[auth][credentials] Attempt sign-in for", email)
-
-          const user = await prisma.user.findUnique({
-            where: { email },
-          })
-
-          if (!user) {
-            console.warn("[auth][credentials] User not found for", email)
-            return null
-          }
-
-          const isPasswordValid = await bcrypt.compare(
-            password,
-            user.password
-          )
-
-          if (!isPasswordValid) {
-            console.warn("[auth][credentials] Invalid password for", email)
-            return null
-          }
-
-          const permissions = getUserPermissions(user as any)
-          console.log("[auth][credentials] Sign-in successful for", email)
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            permissions,
-          }
-        } catch (error) {
-          console.error("[auth][credentials] Error during authorize", error)
-          return null
-        }
-      },
-    }),
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    "http://localhost:3000",
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.permissions = (user as any).permissions || []
-      }
-      return token
+})
+
+export type Auth = typeof auth
+
+/** Session with permissions derived from user.role. Use in API routes. */
+export async function getSessionWithPermissions(headers: Headers): Promise<{
+  user: { id: string; email: string; name: string | null; role?: string; permissions: string[] }
+  session: { id: string; userId: string; token: string; expiresAt: Date }
+} | null> {
+  const session = await auth.api.getSession({ headers })
+  if (!session) return null
+  const userRole = session.user.role ?? undefined
+  const permissions = getUserPermissions({ role: userRole })
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      role: userRole,
+      permissions,
     },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string
-        session.user.permissions = (token.permissions as string[]) || []
-      }
-      return session
-    },
-  },
+  }
 }
-
-const nextAuth = NextAuth(authOptions)
-
-export const { auth, signIn, signOut, handlers } = nextAuth

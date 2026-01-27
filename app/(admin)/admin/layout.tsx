@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useSessionWithPermissions } from "@/lib/use-session"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
@@ -9,7 +9,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSessionWithPermissions()
   const router = useRouter()
 
   useEffect(() => {

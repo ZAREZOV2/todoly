@@ -1,4 +1,4 @@
-import { TaskStatus, TaskPriority } from '@prisma/client'
+import type { TaskStatus, TaskPriority } from "@prisma/client"
 
 export type { TaskStatus, TaskPriority }
 

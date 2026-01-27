@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { TaskWithRelations } from "@/lib/types"
-import { TaskStatus, TaskPriority } from "@prisma/client"
-import { useSession } from "next-auth/react"
+import type { TaskWithRelations } from "@/lib/types"
+import type { TaskStatus, TaskPriority } from "@prisma/client"
+import { useSessionWithPermissions } from "@/lib/use-session"
 import { CommentSection } from "./CommentSection"
+import { BlurFade } from "@/components/magicui/BlurFade"
+import { ShimmerButton } from "@/components/magicui/ShimmerButton"
 
 interface TaskModalProps {
   task: TaskWithRelations | null
@@ -24,7 +26,7 @@ export function TaskModal({
   onDelete,
   users,
 }: TaskModalProps) {
-  const { data: session } = useSession()
+  const { data: session } = useSessionWithPermissions()
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -82,7 +84,7 @@ export function TaskModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <BlurFade delay={0} inView={false} className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">
@@ -106,7 +108,8 @@ export function TaskModal({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Task title"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -118,7 +121,8 @@ export function TaskModal({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Task description"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -130,7 +134,7 @@ export function TaskModal({
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {statusOptions.map((s) => (
                       <option key={s} value={s}>
@@ -147,7 +151,7 @@ export function TaskModal({
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {priorityOptions.map((p) => (
                       <option key={p} value={p}>
@@ -168,7 +172,7 @@ export function TaskModal({
                     onChange={(e) =>
                       setAssignedToId(e.target.value || null)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">Unassigned</option>
                     {users.map((user) => (
@@ -181,13 +185,14 @@ export function TaskModal({
               )}
 
               <div className="flex gap-2">
-                <button
+                <ShimmerButton
                   onClick={handleSave}
                   disabled={loading || !title.trim()}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                  className="px-4 py-2 disabled:opacity-50"
+                  background="rgb(79 70 229)"
                 >
-                  {loading ? "Saving..." : "Save"}
-                </button>
+                  <span className="relative z-10">{loading ? "Saving..." : "Save"}</span>
+                </ShimmerButton>
                 <button
                   onClick={() => setIsEditing(false)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
@@ -258,7 +263,7 @@ export function TaskModal({
             </div>
           )}
         </div>
-      </div>
+      </BlurFade>
     </div>
   )
 }

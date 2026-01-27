@@ -6,7 +6,7 @@ import { AuthProvider } from "@/components/AuthProvider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TODO Development Platform",
+  title: "Todoly",
   description: "Task management platform for development teams",
 }
 

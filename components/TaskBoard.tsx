@@ -15,8 +15,8 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
-import { TaskStatus } from "@prisma/client"
-import { TaskWithRelations } from "@/lib/types"
+import type { TaskStatus } from "@prisma/client"
+import type { TaskWithRelations } from "@/lib/types"
 import { SortableTaskCard } from "./SortableTaskCard"
 import { TaskCard } from "./TaskCard"
 import { useTaskStore } from "@/store/taskStore"
@@ -156,11 +156,12 @@ function StatusColumn({
         strategy={verticalListSortingStrategy}
       >
         <div className="space-y-3">
-          {tasks.map((task) => (
+          {tasks.map((task, index) => (
             <SortableTaskCard
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
+              delay={index * 0.05}
             />
           ))}
         </div>

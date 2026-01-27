@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "./auth"
-import { prisma } from "./db"
+import { getSessionWithPermissions } from "./auth"
 import { Permission } from "./permissions"
 
 export async function checkPermission(
   req: NextRequest,
   permission: Permission
 ): Promise<{ authorized: boolean; user?: any; error?: NextResponse }> {
-  const session = await auth()
+  const session = await getSessionWithPermissions(req.headers)
 
   if (!session?.user?.id) {
     return {
@@ -16,7 +15,6 @@ export async function checkPermission(
     }
   }
 
-  // Check permissions from session (already loaded in auth callback)
   const permissions = (session.user?.permissions as string[]) || []
 
   if (!permissions.includes(permission)) {
@@ -29,6 +27,5 @@ export async function checkPermission(
     }
   }
 
-  // Permission found in session
   return { authorized: true, user: session.user }
 }

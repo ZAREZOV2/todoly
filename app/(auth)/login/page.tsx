@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -18,29 +18,21 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const result = await signIn("credentials", {
+      const result = await authClient.signIn.email({
         email,
         password,
-        redirect: false, // ручная обработка редиректа
-        callbackUrl: "/", // целевая страница после логина
+        callbackURL: "/",
+        rememberMe: true, // Remember session even after browser closes
       })
 
-      console.log("signIn result:", result)
-
-      // Если по какой-то причине result не вернулся
-      if (!result) {
-        setError("Login failed. Please try again.")
+      if (result.error) {
+        setError(result.error.message ?? "Invalid email or password")
         return
       }
 
-      // Ошибка авторизации от NextAuth
-      if (result.error || !result.ok) {
-        setError("Invalid email or password")
-        return
+      if (result.data) {
+        router.replace("/")
       }
-
-      // Успешный логин — жёсткий переход на главную
-      router.replace("/")
     } catch (err) {
       console.error("signIn error:", err)
       setError("An error occurred. Please try again.")
@@ -74,7 +66,7 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -90,7 +82,7 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -113,7 +105,7 @@ export default function LoginPage() {
               href="/register"
               className="text-indigo-600 hover:text-indigo-500 text-sm"
             >
-              Don't have an account? Register
+              Don&apos;t have an account? Register
             </Link>
           </div>
         </form>

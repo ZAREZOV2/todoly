@@ -2,17 +2,22 @@
 
 import { useEffect, useState } from "react"
 import React from "react"
-import { useSession, signOut } from "next-auth/react"
+import { useSessionWithPermissions } from "@/lib/use-session"
+import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
-import { TaskWithRelations } from "@/lib/types"
-import { TaskStatus, TaskPriority } from "@prisma/client"
+import type { TaskWithRelations } from "@/lib/types"
+import type { TaskStatus, TaskPriority } from "@prisma/client"
 import { useTaskStore } from "@/store/taskStore"
 import { TaskBoard } from "@/components/TaskBoard"
 import { TaskModal } from "@/components/TaskModal"
 import { Filters } from "@/components/Filters"
+import { BlurFade } from "@/components/magicui/BlurFade"
+import { ShimmerButton } from "@/components/magicui/ShimmerButton"
+import { GradualSpacing } from "@/components/magicui/GradualSpacing"
+import { RainbowButton } from "@/components/magicui/RainbowButton"
 
 export default function HomePage() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSessionWithPermissions()
   const router = useRouter()
   const { tasks, setTasks, updateTask, removeTask } = useTaskStore()
   const [selectedTask, setSelectedTask] = useState<TaskWithRelations | null>(
@@ -163,7 +168,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <h1 className="text-2xl font-bold text-gray-900">
-              TODO Development Platform
+              <GradualSpacing text="Todoly" />
             </h1>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
@@ -178,7 +183,10 @@ export default function HomePage() {
                 </a>
               )}
               <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
+                onClick={async () => {
+                  await authClient.signOut()
+                  window.location.href = "/login"
+                }}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm"
               >
                 Sign Out
@@ -192,12 +200,12 @@ export default function HomePage() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-900">Task Board</h2>
           {canCreate && (
-            <button
+            <RainbowButton
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              className="px-4 py-2 text-sm"
             >
               + New Task
-            </button>
+            </RainbowButton>
           )}
         </div>
 
@@ -270,7 +278,7 @@ function CreateTaskModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+      <BlurFade delay={0} inView={false} className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-gray-900">Create New Task</h2>
           <button
@@ -291,7 +299,8 @@ function CreateTaskModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Task title"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -303,7 +312,8 @@ function CreateTaskModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Task description"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -315,7 +325,7 @@ function CreateTaskModal({
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="HIGH">High</option>
                 <option value="MEDIUM">Medium</option>
@@ -331,7 +341,7 @@ function CreateTaskModal({
                 <select
                   value={assignedToId}
                   onChange={(e) => setAssignedToId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">Unassigned</option>
                   {users.map((user) => (
@@ -345,13 +355,14 @@ function CreateTaskModal({
           </div>
 
           <div className="flex gap-2">
-            <button
+            <ShimmerButton
               type="submit"
               disabled={loading || !title.trim()}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+              className="px-4 py-2 disabled:opacity-50"
+              background="rgb(79 70 229)"
             >
-              {loading ? "Creating..." : "Create Task"}
-            </button>
+              <span className="relative z-10">{loading ? "Creating..." : "Create Task"}</span>
+            </ShimmerButton>
             <button
               type="button"
               onClick={onClose}
@@ -361,7 +372,7 @@ function CreateTaskModal({
             </button>
           </div>
         </form>
-      </div>
+      </BlurFade>
     </div>
   )
 }

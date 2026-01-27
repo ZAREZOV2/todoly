@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { useSession } from "next-auth/react"
+import { useSessionWithPermissions } from "@/lib/use-session"
 
 export default function AdminPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSessionWithPermissions()
   const canManageUsers = session?.user?.permissions?.includes("users.manage")
   const canManageRoles = session?.user?.permissions?.includes("roles.manage")
 

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { auth } from "@/lib/auth"
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
 
-  // Allow public assets and auth routes
   if (
     path.startsWith("/login") ||
     path.startsWith("/register") ||
@@ -15,12 +15,11 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Lightweight auth check: presence of NextAuth session cookie
-  const hasSessionCookie =
-    req.cookies.has("next-auth.session-token") ||
-    req.cookies.has("__Secure-next-auth.session-token")
+  const session = await auth.api.getSession({
+    headers: req.headers,
+  })
 
-  if (!hasSessionCookie) {
+  if (!session) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
@@ -28,13 +27,8 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
+  runtime: "nodejs",
   matcher: [
-    // Apply middleware only to page routes, not API routes.
-    // Exclude:
-    // - all /api/* (API routes, including NextAuth and debug endpoints)
-    // - _next/static, _next/image (Next.js internals)
-    // - favicon and static assets
-    // - common static file extensions
     "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
