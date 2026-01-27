@@ -27,7 +27,7 @@ interface TaskBoardProps {
   onTaskMove: (taskId: string, newStatus: TaskStatus) => Promise<void>
 }
 
-const statusColumns: TaskStatus[] = ["TODO", "IN_PROGRESS", "REVIEW", "DONE"]
+const statusColumns: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE"]
 
 export function TaskBoard({
   tasks,
@@ -67,7 +67,6 @@ export function TaskBoard({
     const grouped: Record<TaskStatus, TaskWithRelations[]> = {
       TODO: [],
       IN_PROGRESS: [],
-      REVIEW: [],
       DONE: [],
     }
 

@@ -32,21 +32,6 @@ export const authOptions: NextAuthConfig = {
 
         const user = await prisma.user.findUnique({
           where: { email },
-          include: {
-            userRoles: {
-              include: {
-                role: {
-                  include: {
-                    rolePermissions: {
-                      include: {
-                        permission: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
         })
 
         if (!user) {

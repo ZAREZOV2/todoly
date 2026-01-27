@@ -7,9 +7,8 @@ import { z } from "zod"
 const updateTaskSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().optional(),
-  status: z.enum(["TODO", "IN_PROGRESS", "REVIEW", "DONE"]).optional(),
-  priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-  assignedToId: z.string().nullable().optional(),
+  status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
 })
 
 // GET /api/tasks/[id] - Get task by ID
@@ -58,14 +57,6 @@ export async function PUT(
 
     const body = await req.json()
     const updateData = updateTaskSchema.parse(body)
-
-    // Check assign permission if assigning to someone
-    if (updateData.assignedToId && updateData.assignedToId !== user.id) {
-      const assignCheck = await checkPermission(req, "tasks.assign")
-      if (!assignCheck.authorized) {
-        return assignCheck.error!
-      }
-    }
 
     const updatedTask = await prisma.task.update({
       where: { id },

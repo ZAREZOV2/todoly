@@ -15,7 +15,7 @@ interface TaskModalProps {
 }
 
 const priorityOptions: TaskPriority[] = ["HIGH", "MEDIUM", "LOW"]
-const statusOptions: TaskStatus[] = ["TODO", "IN_PROGRESS", "REVIEW", "DONE"]
+const statusOptions: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE"]
 
 export function TaskModal({
   task,
