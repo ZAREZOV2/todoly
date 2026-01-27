@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs"
 import { getUserPermissions } from "./permissions"
 
 export const authOptions: NextAuthConfig = {
+  // Ensure the same secret is used everywhere (API routes, middleware, JWT)
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
   },
