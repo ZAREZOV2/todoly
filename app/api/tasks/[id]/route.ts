@@ -25,36 +25,6 @@ export async function GET(
 
   const task = await prisma.task.findUnique({
     where: { id },
-    include: {
-      creator: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      assignedTo: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      comments: {
-        include: {
-          author: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
-    },
   })
 
   if (!task) {
@@ -100,33 +70,6 @@ export async function PUT(
     const updatedTask = await prisma.task.update({
       where: { id },
       data: updateData,
-      include: {
-        creator: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-        assignedTo: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-                email: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
     })
 
     return NextResponse.json(updatedTask)

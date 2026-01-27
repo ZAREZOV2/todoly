@@ -45,38 +45,7 @@ export async function GET(req: NextRequest) {
 
   const tasks = await prisma.task.findMany({
     where,
-    include: {
-      creator: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      assignedTo: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      },
-      comments: {
-        include: {
-          author: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
     orderBy: [
-      { order: "asc" },
       { createdAt: "desc" },
     ],
   })
@@ -109,26 +78,8 @@ export async function POST(req: NextRequest) {
       data: {
         title,
         description: description || null,
-        priority: priority || "MEDIUM",
-        creatorId: user.id,
-        assignedToId: assignedToId || null,
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-        assignedTo: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-        comments: true,
+        status: priority || "TODO",
+        userId: user.id,
       },
     })
 

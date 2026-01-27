@@ -43,28 +43,12 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create user with default Viewer role
-    const viewerRole = await prisma.role.findUnique({
-      where: { name: "Viewer" },
-    })
-
-    if (!viewerRole) {
-      return NextResponse.json(
-        { error: "Default role not found" },
-        { status: 500 }
-      )
-    }
-
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name: name || null,
-        userRoles: {
-          create: {
-            roleId: viewerRole.id,
-          },
-        },
+        // role: "USER" будет выставлен по умолчанию в базе
       },
     })
 

@@ -15,17 +15,7 @@ export async function GET(req: NextRequest) {
       email: true,
       name: true,
       createdAt: true,
-      userRoles: {
-        include: {
-          role: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-            },
-          },
-        },
-      },
+      role: true,
     },
     orderBy: {
       createdAt: "desc",

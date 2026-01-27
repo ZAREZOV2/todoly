@@ -1,101 +1,36 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("STORAGE_POSTGRES_PRISMA_URL")
-}    
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  name          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  tasksCreated  Task[]    @relation("TaskCreator")
-  tasksAssigned Task[]    @relation("TaskAssignee")
-  comments      Comment[]
-  userRoles     UserRole[]
-}
+  id         String   @id @default(uuid())
+  email      String   @unique
+  password   String
+  name       String?
+  role       String   @default("USER")
+  reg_ip     String?
+  last_ip    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  tasks      Task[]
 
-model Role {
-  id             String          @id @default(cuid())
-  name           String          @unique
-  description    String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  users          UserRole[]
-  rolePermissions RolePermission[]
-}
-
-model Permission {
-  id             String          @id @default(cuid())
-  name           String          @unique
-  description    String?
-  createdAt      DateTime        @default(now())
-  rolePermissions RolePermission[]
-}
-
-model UserRole {
-  userId      String   @default(cuid())
-  roleId      String   @default(cuid())
-  assignedAt DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role        Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  @@id([userId, roleId])
-}
-
-model RolePermission {
-  roleId       String     @default(cuid())
-  permissionId String     @default(cuid())
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  @@id([roleId, permissionId])
+  @@map("User")
 }
 
 model Task {
-  id          String    @id @default(cuid())
+  id          String   @id @default(uuid())
   title       String
   description String?
-  status      TaskStatus @default(TODO)
-  priority    TaskPriority @default(MEDIUM)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  creatorId   String
-  assignedToId String?
-  order       Int       @default(0)
-  creator     User      @relation("TaskCreator", fields: [creatorId], references: [id])
-  assignedTo User?      @relation("TaskAssignee", fields: [assignedToId], references: [id])
-  comments    Comment[]
-}
+  status      String   @default("TODO")
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  taskId    String
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id])
-}
-
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  REVIEW
-  DONE
-}
-
-enum TaskPriority {
-  HIGH
-  MEDIUM
-  LOW
+  @@map("Task")
 }

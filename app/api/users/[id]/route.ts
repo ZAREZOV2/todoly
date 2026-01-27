@@ -26,17 +26,7 @@ export async function GET(
       email: true,
       name: true,
       createdAt: true,
-      userRoles: {
-        include: {
-          role: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-            },
-          },
-        },
-      },
+      role: true,
     },
   })
 
@@ -70,17 +60,7 @@ export async function PUT(
         email: true,
         name: true,
         createdAt: true,
-        userRoles: {
-          include: {
-            role: {
-              select: {
-                id: true,
-                name: true,
-                description: true,
-              },
-            },
-          },
-        },
+        role: true,
       },
     })
 
