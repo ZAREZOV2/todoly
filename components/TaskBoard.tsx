@@ -20,6 +20,7 @@ import type { TaskWithRelations } from "@/lib/types"
 import { SortableTaskCard } from "./SortableTaskCard"
 import { TaskCard } from "./TaskCard"
 import { useTaskStore } from "@/store/taskStore"
+import { Text, Label } from "@gravity-ui/uikit"
 
 interface TaskBoardProps {
   tasks: TaskWithRelations[]
@@ -29,19 +30,19 @@ interface TaskBoardProps {
 
 const statusColumns: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE"]
 
-export function TaskBoard({
-  tasks,
-  onTaskClick,
-  onTaskMove,
-}: TaskBoardProps) {
+const columnConfig: Record<TaskStatus, { label: string; labelTheme: "info" | "warning" | "success" }> = {
+  TODO: { label: "To Do", labelTheme: "info" },
+  IN_PROGRESS: { label: "In Progress", labelTheme: "warning" },
+  DONE: { label: "Done", labelTheme: "success" },
+}
+
+export function TaskBoard({ tasks, onTaskClick, onTaskMove }: TaskBoardProps) {
   const { filters } = useTaskStore()
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     })
   )
 
@@ -49,8 +50,7 @@ export function TaskBoard({
     return tasks.filter((task) => {
       if (filters.status && task.status !== filters.status) return false
       if (filters.priority && task.priority !== filters.priority) return false
-      if (filters.assignedTo && task.assignedToId !== filters.assignedTo)
-        return false
+      if (filters.assignedTo && task.assignedToId !== filters.assignedTo) return false
       if (filters.search) {
         const searchLower = filters.search.toLowerCase()
         if (
@@ -69,11 +69,9 @@ export function TaskBoard({
       IN_PROGRESS: [],
       DONE: [],
     }
-
     filteredTasks.forEach((task) => {
       grouped[task.status].push(task)
     })
-
     return grouped
   }, [filteredTasks])
 
@@ -84,31 +82,26 @@ export function TaskBoard({
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     setActiveId(null)
-
     if (!over) return
-
     const taskId = active.id as string
     const newStatus = over.id as TaskStatus
-
     if (!statusColumns.includes(newStatus)) return
-
     const task = tasks.find((t) => t.id === taskId)
     if (!task || task.status === newStatus) return
-
     await onTaskMove(taskId, newStatus)
   }
 
-  const activeTask = activeId
-    ? tasks.find((t) => t.id === activeId)
-    : null
+  const activeTask = activeId ? tasks.find((t) => t.id === activeId) : null
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 16,
+        }}
+      >
         {statusColumns.map((status) => (
           <StatusColumn
             key={status}
@@ -120,7 +113,7 @@ export function TaskBoard({
       </div>
       <DragOverlay>
         {activeTask ? (
-          <div className="opacity-50 rotate-3">
+          <div style={{ opacity: 0.8, transform: "rotate(2deg)" }}>
             <TaskCard task={activeTask} onClick={() => {}} />
           </div>
         ) : null}
@@ -138,30 +131,34 @@ function StatusColumn({
   tasks: TaskWithRelations[]
   onTaskClick: (task: TaskWithRelations) => void
 }) {
-  const { setNodeRef } = useDroppable({
-    id: status,
-  })
+  const { setNodeRef } = useDroppable({ id: status })
+  const config = columnConfig[status]
 
   return (
     <div
       ref={setNodeRef}
       id={status}
-      className="bg-gray-50 rounded-lg p-4 min-h-[400px]"
+      style={{
+        background: "var(--g-color-base-generic)",
+        borderRadius: 8,
+        padding: 12,
+        minHeight: 400,
+        border: "1px solid var(--g-color-line-generic)",
+      }}
     >
-      <h3 className="font-semibold text-gray-900 mb-4">
-        {status.replace("_", " ")} ({tasks.length})
-      </h3>
-      <SortableContext
-        items={tasks.map((t) => t.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <div className="space-y-3">
-          {tasks.map((task, index) => (
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <Text variant="subheader-2">{config.label}</Text>
+        <Label theme={config.labelTheme} size="xs">
+          {tasks.length}
+        </Label>
+      </div>
+      <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {tasks.map((task) => (
             <SortableTaskCard
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
-              delay={index * 0.05}
             />
           ))}
         </div>

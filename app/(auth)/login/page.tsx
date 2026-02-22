@@ -4,6 +4,13 @@ import { useState } from "react"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import {
+  Button,
+  Card,
+  Text,
+  TextInput,
+  Alert,
+} from "@gravity-ui/uikit"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,7 +29,7 @@ export default function LoginPage() {
         email,
         password,
         callbackURL: "/",
-        rememberMe: true, // Remember session even after browser closes
+        rememberMe: true,
       })
 
       if (result.error) {
@@ -42,74 +49,84 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--g-color-base-background)",
+        padding: "16px",
+      }}
+    >
+      <Card
+        style={{ width: "100%", maxWidth: 400, padding: 32 }}
+        view="outlined"
+      >
+        <div style={{ marginBottom: 24, textAlign: "center" }}>
+          <Text variant="display-2" as="h1">
+            Todoly
+          </Text>
+          <Text variant="body-2" color="secondary" style={{ marginTop: 8 }}>
             Sign in to your account
-          </h2>
+          </Text>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div>
-            <button
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {error && (
+              <Alert
+                theme="danger"
+                title="Sign in failed"
+                message={error}
+              />
+            )}
+
+            <TextInput
+              label="Email"
+              type="email"
+              value={email}
+              onUpdate={setEmail}
+              placeholder="you@example.com"
+              autoComplete="email"
+              size="l"
+              hasClear
+            />
+
+            <TextInput
+              label="Password"
+              type="password"
+              value={password}
+              onUpdate={setPassword}
+              placeholder="Your password"
+              autoComplete="current-password"
+              size="l"
+            />
+
+            <Button
               type="submit"
+              view="action"
+              size="l"
+              width="max"
+              loading={loading}
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {loading ? "Signing in..." : "Sign in"}
-            </button>
-          </div>
+              Sign in
+            </Button>
 
-          <div className="text-center">
-            <Link
-              href="/register"
-              className="text-indigo-600 hover:text-indigo-500 text-sm"
+            <Text
+              variant="body-2"
+              color="secondary"
+              style={{ textAlign: "center" }}
             >
-              Don&apos;t have an account? Register
-            </Link>
+              Don&apos;t have an account?{" "}
+              <Link href="/register" style={{ color: "var(--g-color-text-link)" }}>
+                Register
+              </Link>
+            </Text>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   )
 }

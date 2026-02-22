@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useSessionWithPermissions } from "@/lib/use-session"
+import { Button, Card, Text } from "@gravity-ui/uikit"
 
 export default function AdminPage() {
   const { data: session } = useSessionWithPermissions()
@@ -9,57 +10,71 @@ export default function AdminPage() {
   const canManageRoles = session?.user?.permissions?.includes("roles.manage")
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-md mb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <Link
-              href="/"
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm"
-            >
-              Back to Board
-            </Link>
-          </div>
+    <div style={{ minHeight: "100vh", background: "var(--g-color-base-background)" }}>
+      <div
+        style={{
+          background: "var(--g-color-base-float)",
+          borderBottom: "1px solid var(--g-color-line-generic)",
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text variant="header-1">Admin Panel</Text>
+          <Button view="outlined" size="m" href="/">
+            Back to Board
+          </Button>
         </div>
-      </nav>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px 32px" }}>
+        <Card view="outlined" style={{ padding: 24 }}>
+          <Text variant="header-2" style={{ marginBottom: 20, display: "block" }}>
             Administration
-          </h2>
+          </Text>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             {canManageUsers && (
-              <Link
-                href="/admin/users"
-                className="block p-6 bg-indigo-50 rounded-lg border-2 border-indigo-200 hover:border-indigo-400 transition-colors"
-              >
-                <h3 className="text-lg font-semibold text-indigo-900 mb-2">
-                  User Management
-                </h3>
-                <p className="text-indigo-700">
-                  Manage users, assign roles, and edit user information
-                </p>
+              <Link href="/admin/users" style={{ textDecoration: "none" }}>
+                <Card
+                  view="outlined"
+                  style={{ padding: 20, cursor: "pointer" }}
+                >
+                  <Text variant="subheader-3" style={{ marginBottom: 8, display: "block" }}>
+                    User Management
+                  </Text>
+                  <Text variant="body-2" color="secondary">
+                    Manage users, assign roles, and edit user information
+                  </Text>
+                </Card>
               </Link>
             )}
 
             {canManageRoles && (
-              <Link
-                href="/admin/roles"
-                className="block p-6 bg-green-50 rounded-lg border-2 border-green-200 hover:border-green-400 transition-colors"
-              >
-                <h3 className="text-lg font-semibold text-green-900 mb-2">
-                  Role Management
-                </h3>
-                <p className="text-green-700">
-                  Create and manage roles, assign permissions to roles
-                </p>
+              <Link href="/admin/roles" style={{ textDecoration: "none" }}>
+                <Card
+                  view="outlined"
+                  style={{ padding: 20, cursor: "pointer" }}
+                >
+                  <Text variant="subheader-3" style={{ marginBottom: 8, display: "block" }}>
+                    Role Management
+                  </Text>
+                  <Text variant="body-2" color="secondary">
+                    Create and manage roles, assign permissions to roles
+                  </Text>
+                </Card>
               </Link>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )

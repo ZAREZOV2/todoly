@@ -5,8 +5,16 @@ import type { TaskWithRelations } from "@/lib/types"
 import type { TaskStatus, TaskPriority } from "@prisma/client"
 import { useSessionWithPermissions } from "@/lib/use-session"
 import { CommentSection } from "./CommentSection"
-import { BlurFade } from "@/components/magicui/BlurFade"
-import { ShimmerButton } from "@/components/magicui/ShimmerButton"
+import {
+  Button,
+  Modal,
+  Card,
+  Text,
+  TextInput,
+  TextArea,
+  Select,
+  Label,
+} from "@gravity-ui/uikit"
 
 interface TaskModalProps {
   task: TaskWithRelations | null
@@ -19,13 +27,19 @@ interface TaskModalProps {
 const priorityOptions: TaskPriority[] = ["HIGH", "MEDIUM", "LOW"]
 const statusOptions: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE"]
 
-export function TaskModal({
-  task,
-  onClose,
-  onUpdate,
-  onDelete,
-  users,
-}: TaskModalProps) {
+const priorityTheme: Record<string, "danger" | "warning" | "success"> = {
+  HIGH: "danger",
+  MEDIUM: "warning",
+  LOW: "success",
+}
+
+const statusLabels: Record<string, string> = {
+  TODO: "To Do",
+  IN_PROGRESS: "In Progress",
+  DONE: "Done",
+}
+
+export function TaskModal({ task, onClose, onUpdate, onDelete, users }: TaskModalProps) {
   const { data: session } = useSessionWithPermissions()
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState("")
@@ -83,187 +97,150 @@ export function TaskModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <BlurFade delay={0} inView={false} className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {isEditing ? "Edit Task" : "Task Details"}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
+    <Modal open onClose={onClose}>
+      <Card
+        style={{
+          width: 640,
+          maxHeight: "90vh",
+          overflowY: "auto",
+          padding: 24,
+        }}
+        view="clear"
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <Text variant="header-1">
+            {isEditing ? "Edit Task" : "Task Details"}
+          </Text>
+          <Button view="flat" size="m" onClick={onClose}>
+            ✕
+          </Button>
+        </div>
+
+        {isEditing ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <TextInput
+              label="Title"
+              value={title}
+              onUpdate={setTitle}
+              placeholder="Task title"
+              size="l"
+              hasClear
+            />
+
+            <TextArea
+              value={description}
+              onUpdate={setDescription}
+              placeholder="Task description"
+              rows={4}
+              size="l"
+            />
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <Select
+                label="Status"
+                value={[status]}
+                onUpdate={(vals) => setStatus(vals[0] as TaskStatus)}
+                size="l"
+                width="max"
+                options={statusOptions.map((s) => ({ value: s, content: statusLabels[s] }))}
+              />
+
+              <Select
+                label="Priority"
+                value={[priority]}
+                onUpdate={(vals) => setPriority(vals[0] as TaskPriority)}
+                size="l"
+                width="max"
+                options={priorityOptions.map((p) => ({ value: p, content: p }))}
+              />
+            </div>
+
+            {canAssign && (
+              <Select
+                label="Assign To"
+                value={assignedToId ? [assignedToId] : []}
+                onUpdate={(vals) => setAssignedToId(vals[0] || null)}
+                size="l"
+                width="max"
+                options={[
+                  { value: "", content: "Unassigned" },
+                  ...users.map((user) => ({ value: user.id, content: user.name || user.email })),
+                ]}
+              />
+            )}
+
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <Button view="outlined" size="l" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button
+                view="action"
+                size="l"
+                onClick={handleSave}
+                loading={loading}
+                disabled={loading || !title.trim()}
+              >
+                Save
+              </Button>
+            </div>
           </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <Text variant="subheader-3">{task.title}</Text>
+              {task.description && (
+                <Text variant="body-2" color="secondary" style={{ marginTop: 8, display: "block" }}>
+                  {task.description}
+                </Text>
+              )}
+            </div>
 
-          {isEditing ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Task title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Text variant="body-2" color="secondary">Status:</Text>
+                <Text variant="body-2">{statusLabels[task.status]}</Text>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                  placeholder="Task description"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Text variant="body-2" color="secondary">Priority:</Text>
+                <Label theme={priorityTheme[task.priority]} size="s">
+                  {task.priority}
+                </Label>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
-                  </label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {statusOptions.map((s) => (
-                      <option key={s} value={s}>
-                        {s.replace("_", " ")}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Priority
-                  </label>
-                  <select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {priorityOptions.map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Text variant="body-2" color="secondary">Created by:</Text>
+                <Text variant="body-2">{task.creator.name || task.creator.email}</Text>
               </div>
-
-              {canAssign && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Assign To
-                  </label>
-                  <select
-                    value={assignedToId || ""}
-                    onChange={(e) =>
-                      setAssignedToId(e.target.value || null)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">Unassigned</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name || user.email}
-                      </option>
-                    ))}
-                  </select>
+              {task.assignedTo && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Text variant="body-2" color="secondary">Assigned to:</Text>
+                  <Text variant="body-2">{task.assignedTo.name || task.assignedTo.email}</Text>
                 </div>
               )}
-
-              <div className="flex gap-2">
-                <ShimmerButton
-                  onClick={handleSave}
-                  disabled={loading || !title.trim()}
-                  className="px-4 py-2 disabled:opacity-50"
-                  background="rgb(79 70 229)"
-                >
-                  <span className="relative z-10">{loading ? "Saving..." : "Save"}</span>
-                </ShimmerButton>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  {task.title}
-                </h3>
-                {task.description && (
-                  <p className="text-gray-600 mt-2">{task.description}</p>
-                )}
-              </div>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-700">Status:</span>{" "}
-                  <span className="text-gray-900">
-                    {task.status.replace("_", " ")}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Priority:</span>{" "}
-                  <span className="text-gray-900">{task.priority}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Created by:</span>{" "}
-                  <span className="text-gray-900">
-                    {task.creator.name || task.creator.email}
-                  </span>
-                </div>
-                {task.assignedTo && (
-                  <div>
-                    <span className="font-medium text-gray-700">Assigned to:</span>{" "}
-                    <span className="text-gray-900">
-                      {task.assignedTo.name || task.assignedTo.email}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                {canEdit && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                  >
-                    Edit
-                  </button>
-                )}
-                {canDelete && (
-                  <button
-                    onClick={handleDelete}
-                    disabled={loading}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-                  >
-                    {loading ? "Deleting..." : "Delete"}
-                  </button>
-                )}
-              </div>
-
-              <CommentSection taskId={task.id} comments={task.comments} />
+            <div style={{ display: "flex", gap: 8 }}>
+              {canEdit && (
+                <Button view="action" size="m" onClick={() => setIsEditing(true)}>
+                  Edit
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  view="outlined-danger"
+                  size="m"
+                  onClick={handleDelete}
+                  loading={loading}
+                  disabled={loading}
+                >
+                  Delete
+                </Button>
+              )}
             </div>
-          )}
-        </div>
-      </BlurFade>
-    </div>
+
+            <CommentSection taskId={task.id} comments={task.comments} />
+          </div>
+        )}
+      </Card>
+    </Modal>
   )
 }

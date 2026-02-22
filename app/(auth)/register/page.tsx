@@ -4,6 +4,13 @@ import { useState } from "react"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import {
+  Button,
+  Card,
+  Text,
+  TextInput,
+  Alert,
+} from "@gravity-ui/uikit"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -42,89 +49,94 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--g-color-base-background)",
+        padding: "16px",
+      }}
+    >
+      <Card
+        style={{ width: "100%", maxWidth: 400, padding: 32 }}
+        view="outlined"
+      >
+        <div style={{ marginBottom: 24, textAlign: "center" }}>
+          <Text variant="display-2" as="h1">
+            Todoly
+          </Text>
+          <Text variant="body-2" color="secondary" style={{ marginTop: 8 }}>
             Create your account
-          </h2>
+          </Text>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Name (optional)
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Password (min 8 characters)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div>
-            <button
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {error && (
+              <Alert
+                theme="danger"
+                title="Registration failed"
+                message={error}
+              />
+            )}
+
+            <TextInput
+              label="Name"
+              type="text"
+              value={name}
+              onUpdate={setName}
+              placeholder="Your name (optional)"
+              size="l"
+              hasClear
+            />
+
+            <TextInput
+              label="Email"
+              type="email"
+              value={email}
+              onUpdate={setEmail}
+              placeholder="you@example.com"
+              autoComplete="email"
+              size="l"
+              hasClear
+            />
+
+            <TextInput
+              label="Password"
+              type="password"
+              value={password}
+              onUpdate={setPassword}
+              placeholder="Min 8 characters"
+              autoComplete="new-password"
+              size="l"
+            />
+
+            <Button
               type="submit"
+              view="action"
+              size="l"
+              width="max"
+              loading={loading}
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {loading ? "Creating account..." : "Register"}
-            </button>
-          </div>
+              Create account
+            </Button>
 
-          <div className="text-center">
-            <Link
-              href="/login"
-              className="text-indigo-600 hover:text-indigo-500 text-sm"
+            <Text
+              variant="body-2"
+              color="secondary"
+              style={{ textAlign: "center" }}
             >
-              Already have an account? Sign in
-            </Link>
+              Already have an account?{" "}
+              <Link href="/login" style={{ color: "var(--g-color-text-link)" }}>
+                Sign in
+              </Link>
+            </Text>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   )
 }
