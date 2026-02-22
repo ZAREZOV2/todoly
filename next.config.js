@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Middleware will use Node.js runtime (specified in middleware.ts)
+  transpilePackages: ["@gravity-ui/uikit", "@gravity-ui/icons"],
 }
 
 module.exports = nextConfig

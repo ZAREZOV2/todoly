@@ -3,6 +3,13 @@
 import { useState } from "react"
 import { useSessionWithPermissions } from "@/lib/use-session"
 import type { TaskWithRelations } from "@/lib/types"
+import {
+  Button,
+  Text,
+  TextArea,
+  Divider,
+  Card,
+} from "@gravity-ui/uikit"
 
 interface CommentSectionProps {
   taskId: string
@@ -32,7 +39,6 @@ export function CommentSection({ taskId, comments: initialComments }: CommentSec
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: newComment }),
       })
-
       if (response.ok) {
         const comment = await response.json()
         setComments([...comments, comment])
@@ -47,7 +53,6 @@ export function CommentSection({ taskId, comments: initialComments }: CommentSec
 
   const handleUpdateComment = async (id: string) => {
     if (!editContent.trim()) return
-
     setLoading(true)
     try {
       const response = await fetch(`/api/comments/${id}`, {
@@ -55,12 +60,9 @@ export function CommentSection({ taskId, comments: initialComments }: CommentSec
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: editContent }),
       })
-
       if (response.ok) {
         const updated = await response.json()
-        setComments(
-          comments.map((c) => (c.id === id ? updated : c))
-        )
+        setComments(comments.map((c) => (c.id === id ? updated : c)))
         setEditingId(null)
         setEditContent("")
       }
@@ -73,13 +75,9 @@ export function CommentSection({ taskId, comments: initialComments }: CommentSec
 
   const handleDeleteComment = async (id: string) => {
     if (!confirm("Delete this comment?")) return
-
     setLoading(true)
     try {
-      const response = await fetch(`/api/comments/${id}`, {
-        method: "DELETE",
-      })
-
+      const response = await fetch(`/api/comments/${id}`, { method: "DELETE" })
       if (response.ok) {
         setComments(comments.filter((c) => c.id !== id))
       }
@@ -90,105 +88,117 @@ export function CommentSection({ taskId, comments: initialComments }: CommentSec
     }
   }
 
-  const isOwnComment = (comment: typeof comments[0]) => {
+  const isOwnComment = (comment: (typeof comments)[0]) => {
     return comment.author.id === session?.user?.id
   }
 
   return (
-    <div className="mt-6 border-t pt-4">
-      <h4 className="font-semibold text-gray-900 mb-4">Comments ({comments.length})</h4>
+    <div style={{ marginTop: 8 }}>
+      <Divider style={{ marginBottom: 16 }} />
+      <Text variant="subheader-2" style={{ marginBottom: 12, display: "block" }}>
+        Comments ({comments.length})
+      </Text>
 
-      <div className="space-y-4 mb-4">
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
         {comments.map((comment) => (
-          <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
+          <Card key={comment.id} view="filled" style={{ padding: 12 }}>
             {editingId === comment.id ? (
-              <div className="space-y-2">
-                <textarea
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <TextArea
                   value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
+                  onUpdate={setEditContent}
                   rows={3}
                   placeholder="Edit comment..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  size="m"
                 />
-                <div className="flex gap-2">
-                  <button
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Button
+                    view="action"
+                    size="s"
                     onClick={() => handleUpdateComment(comment.id)}
                     disabled={loading}
-                    className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50"
+                    loading={loading}
                   >
                     Save
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    view="outlined"
+                    size="s"
                     onClick={() => {
                       setEditingId(null)
                       setEditContent("")
                     }}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
               <div>
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <span className="font-medium text-gray-900">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Text variant="body-2" style={{ fontWeight: 500 }}>
                       {comment.author.name || comment.author.email}
-                    </span>
-                    <span className="text-xs text-gray-500 ml-2">
+                    </Text>
+                    <Text variant="caption-2" color="hint">
                       {new Date(comment.createdAt).toLocaleString()}
-                    </span>
+                    </Text>
                   </div>
                   {(isOwnComment(comment) || canUpdate || canDelete) && (
-                    <div className="flex gap-2">
+                    <div style={{ display: "flex", gap: 6 }}>
                       {(isOwnComment(comment) || canUpdate) && (
-                        <button
+                        <Button
+                          view="flat"
+                          size="xs"
                           onClick={() => {
                             setEditingId(comment.id)
                             setEditContent(comment.content)
                           }}
-                          className="text-xs text-indigo-600 hover:text-indigo-800"
                         >
                           Edit
-                        </button>
+                        </Button>
                       )}
                       {(isOwnComment(comment) || canDelete) && (
-                        <button
+                        <Button
+                          view="flat-danger"
+                          size="xs"
                           onClick={() => handleDeleteComment(comment.id)}
-                          className="text-xs text-red-600 hover:text-red-800"
                         >
                           Delete
-                        </button>
+                        </Button>
                       )}
                     </div>
                   )}
                 </div>
-                <p className="text-gray-700 whitespace-pre-wrap">
+                <Text variant="body-2" style={{ whiteSpace: "pre-wrap" }}>
                   {comment.content}
-                </p>
+                </Text>
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </div>
 
       {canCreate && (
-        <form onSubmit={handleAddComment} className="space-y-2">
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add a comment..."
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <button
-            type="submit"
-            disabled={loading || !newComment.trim()}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {loading ? "Adding..." : "Add Comment"}
-          </button>
+        <form onSubmit={handleAddComment}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <TextArea
+              value={newComment}
+              onUpdate={setNewComment}
+              placeholder="Add a comment..."
+              rows={3}
+              size="m"
+            />
+            <Button
+              type="submit"
+              view="action"
+              size="m"
+              disabled={loading || !newComment.trim()}
+              loading={loading}
+            >
+              Add Comment
+            </Button>
+          </div>
         </form>
       )}
     </div>

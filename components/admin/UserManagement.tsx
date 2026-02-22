@@ -1,6 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import {
+  Button,
+  Card,
+  Text,
+  Label,
+  Modal,
+  Checkbox,
+  Spin,
+  Table,
+} from "@gravity-ui/uikit"
 
 interface User {
   id: string
@@ -67,14 +77,12 @@ export function UserManagement() {
 
   const handleSaveRoles = async () => {
     if (!editingUser) return
-
     try {
       const response = await fetch(`/api/users/${editingUser.id}/roles`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roleIds: selectedRoles }),
       })
-
       if (response.ok) {
         await loadUsers()
         setEditingUser(null)
@@ -87,12 +95,8 @@ export function UserManagement() {
 
   const handleDeleteUser = async (userId: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return
-
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: "DELETE",
-      })
-
+      const response = await fetch(`/api/users/${userId}`, { method: "DELETE" })
       if (response.ok) {
         await loadUsers()
       }
@@ -102,131 +106,128 @@ export function UserManagement() {
   }
 
   if (loading) {
-    return <div className="text-gray-600">Loading users...</div>
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
+        <Spin size="l" />
+      </div>
+    )
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">User Management</h2>
+      <Text variant="header-2" style={{ marginBottom: 20, display: "block" }}>
+        User Management
+      </Text>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                User
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Roles
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Created
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+      <Card view="outlined" style={{ overflow: "hidden" }}>
+        <Table
+          data={users}
+          columns={[
+            {
+              id: "user",
+              name: "User",
+              template: (user: User) => (
+                <div>
+                  <Text variant="body-2" style={{ fontWeight: 500 }}>
                     {user.name || user.email}
-                  </div>
-                  <div className="text-sm text-gray-500">{user.email}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-wrap gap-2">
-                    {user.userRoles.map((ur) => (
-                      <span
-                        key={ur.role.id}
-                        className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded"
-                      >
-                        {ur.role.name}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  </Text>
+                  <br />
+                  <Text variant="caption-2" color="secondary">
+                    {user.email}
+                  </Text>
+                </div>
+              ),
+            },
+            {
+              id: "roles",
+              name: "Roles",
+              template: (user: User) => (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {user.userRoles.map((ur) => (
+                    <Label key={ur.role.id} theme="info" size="xs">
+                      {ur.role.name}
+                    </Label>
+                  ))}
+                </div>
+              ),
+            },
+            {
+              id: "created",
+              name: "Created",
+              template: (user: User) => (
+                <Text variant="body-2" color="secondary">
                   {new Date(user.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
+                </Text>
+              ),
+            },
+            {
+              id: "actions",
+              name: "Actions",
+              template: (user: User) => (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Button
+                    view="outlined"
+                    size="s"
                     onClick={() => handleEditRoles(user)}
-                    className="text-indigo-600 hover:text-indigo-900 mr-4"
                   >
                     Edit Roles
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    view="outlined-danger"
+                    size="s"
                     onClick={() => handleDeleteUser(user.id)}
-                    className="text-red-600 hover:text-red-900"
                   >
                     Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </Button>
+                </div>
+              ),
+            },
+          ]}
+        />
+      </Card>
 
       {editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
+        <Modal open onClose={() => { setEditingUser(null); setSelectedRoles([]) }}>
+          <Card style={{ width: 440, padding: 24 }} view="clear">
+            <Text variant="header-1" style={{ marginBottom: 20, display: "block" }}>
               Edit Roles for {editingUser.name || editingUser.email}
-            </h3>
-            <div className="space-y-2 mb-4">
+            </Text>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
               {roles.map((role) => (
-                <label
+                <Checkbox
                   key={role.id}
-                  className="flex items-center space-x-2 cursor-pointer"
+                  checked={selectedRoles.includes(role.id)}
+                  onUpdate={(checked) => {
+                    if (checked) {
+                      setSelectedRoles([...selectedRoles, role.id])
+                    } else {
+                      setSelectedRoles(selectedRoles.filter((id) => id !== role.id))
+                    }
+                  }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedRoles.includes(role.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedRoles([...selectedRoles, role.id])
-                      } else {
-                        setSelectedRoles(
-                          selectedRoles.filter((id) => id !== role.id)
-                        )
-                      }
-                    }}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {role.name}
-                    {role.description && (
-                      <span className="text-gray-500 ml-2">
-                        - {role.description}
-                      </span>
-                    )}
-                  </span>
-                </label>
+                  <Text variant="body-2">{role.name}</Text>
+                  {role.description && (
+                    <Text variant="caption-2" color="secondary">
+                      {" "}— {role.description}
+                    </Text>
+                  )}
+                </Checkbox>
               ))}
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleSaveRoles}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-              >
-                Save
-              </button>
-              <button
-                onClick={() => {
-                  setEditingUser(null)
-                  setSelectedRoles([])
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <Button
+                view="outlined"
+                size="l"
+                onClick={() => { setEditingUser(null); setSelectedRoles([]) }}
               >
                 Cancel
-              </button>
+              </Button>
+              <Button view="action" size="l" onClick={handleSaveRoles}>
+                Save
+              </Button>
             </div>
-          </div>
-        </div>
+          </Card>
+        </Modal>
       )}
     </div>
   )

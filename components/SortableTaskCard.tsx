@@ -11,7 +11,7 @@ interface SortableTaskCardProps {
   delay?: number
 }
 
-export function SortableTaskCard({ task, onClick, delay = 0 }: SortableTaskCardProps) {
+export function SortableTaskCard({ task, onClick }: SortableTaskCardProps) {
   const {
     attributes,
     listeners,
@@ -24,12 +24,12 @@ export function SortableTaskCard({ task, onClick, delay = 0 }: SortableTaskCardP
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
   }
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} onClick={onClick} delay={delay} />
+      <TaskCard task={task} onClick={onClick} />
     </div>
   )
 }

@@ -1,32 +1,39 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
 import { UserManagement } from "@/components/admin/UserManagement"
+import { Button, Text } from "@gravity-ui/uikit"
 
 export default function AdminUsersPage() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-md mb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <Link
-              href="/"
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm"
-            >
-              Back to Board
-            </Link>
-          </div>
+    <div style={{ minHeight: "100vh", background: "var(--g-color-base-background)" }}>
+      <div
+        style={{
+          background: "var(--g-color-base-float)",
+          borderBottom: "1px solid var(--g-color-line-generic)",
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text variant="header-1">Admin Panel</Text>
+          <Button view="outlined" size="m" href="/">
+            Back to Board
+          </Button>
         </div>
-      </nav>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6">
-          <Link
-            href="/admin"
-            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-          >
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px 32px" }}>
+        <div style={{ marginBottom: 16 }}>
+          <Link href="/admin" style={{ color: "var(--g-color-text-link)", textDecoration: "none" }}>
             ← Back to Admin
           </Link>
         </div>

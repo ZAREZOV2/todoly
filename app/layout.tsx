@@ -1,9 +1,7 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/components/AuthProvider"
-
-const inter = Inter({ subsets: ["latin"] })
+import { GravityProvider } from "@/components/GravityProvider"
 
 export const metadata: Metadata = {
   title: "Todoly",
@@ -17,8 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+      <body>
+        <GravityProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </GravityProvider>
       </body>
     </html>
   )

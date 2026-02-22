@@ -11,21 +11,23 @@ import { useTaskStore } from "@/store/taskStore"
 import { TaskBoard } from "@/components/TaskBoard"
 import { TaskModal } from "@/components/TaskModal"
 import { Filters } from "@/components/Filters"
-import { BlurFade } from "@/components/magicui/BlurFade"
-import { ShimmerButton } from "@/components/magicui/ShimmerButton"
-import { GradualSpacing } from "@/components/magicui/GradualSpacing"
-import { RainbowButton } from "@/components/magicui/RainbowButton"
+import {
+  Button,
+  Text,
+  Modal,
+  TextInput,
+  TextArea,
+  Select,
+  Spin,
+  Card,
+} from "@gravity-ui/uikit"
 
 export default function HomePage() {
   const { data: session, status } = useSessionWithPermissions()
   const router = useRouter()
   const { tasks, setTasks, updateTask, removeTask } = useTaskStore()
-  const [selectedTask, setSelectedTask] = useState<TaskWithRelations | null>(
-    null
-  )
-  const [users, setUsers] = useState<
-    Array<{ id: string; email: string; name: string | null }>
-  >([])
+  const [selectedTask, setSelectedTask] = useState<TaskWithRelations | null>(null)
+  const [users, setUsers] = useState<Array<{ id: string; email: string; name: string | null }>>([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -62,8 +64,6 @@ export default function HomePage() {
         setUsers(data)
       }
     } catch (error) {
-      // Users endpoint requires admin permission, so this might fail
-      // We'll use a fallback or just continue without users list
       console.log("Could not load users (may require admin permission)")
     }
   }
@@ -79,7 +79,6 @@ export default function HomePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       })
-
       if (response.ok) {
         const updated = await response.json()
         updateTask(taskId, updated)
@@ -89,17 +88,13 @@ export default function HomePage() {
     }
   }
 
-  const handleTaskUpdate = async (
-    id: string,
-    updates: Partial<TaskWithRelations>
-  ) => {
+  const handleTaskUpdate = async (id: string, updates: Partial<TaskWithRelations>) => {
     try {
       const response = await fetch(`/api/tasks/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       })
-
       if (response.ok) {
         const updated = await response.json()
         updateTask(id, updated)
@@ -113,10 +108,7 @@ export default function HomePage() {
 
   const handleTaskDelete = async (id: string) => {
     try {
-      const response = await fetch(`/api/tasks/${id}`, {
-        method: "DELETE",
-      })
-
+      const response = await fetch(`/api/tasks/${id}`, { method: "DELETE" })
       if (response.ok) {
         removeTask(id)
         setSelectedTask(null)
@@ -139,7 +131,6 @@ export default function HomePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(taskData),
       })
-
       if (response.ok) {
         const newTask = await response.json()
         useTaskStore.getState().addTask(newTask)
@@ -156,56 +147,83 @@ export default function HomePage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--g-color-base-background)",
+        }}
+      >
+        <Spin size="xl" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-md mb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">
-              <GradualSpacing text="Todoly" />
-            </h1>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                {session?.user?.email}
-              </span>
-              {(canManageUsers || canManageRoles) && (
-                <a
-                  href="/admin"
-                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                >
-                  Admin Panel
-                </a>
-              )}
-              <button
-                onClick={async () => {
-                  await authClient.signOut()
-                  window.location.href = "/login"
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm"
-              >
-                Sign Out
-              </button>
-            </div>
+    <div style={{ minHeight: "100vh", background: "var(--g-color-base-background)" }}>
+      {/* Navigation */}
+      <div
+        style={{
+          background: "var(--g-color-base-float)",
+          borderBottom: "1px solid var(--g-color-line-generic)",
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text variant="header-1">Todoly</Text>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Text variant="body-2" color="secondary">
+              {session?.user?.email}
+            </Text>
+            {(canManageUsers || canManageRoles) && (
+              <Button view="outlined" size="m" href="/admin">
+                Admin Panel
+              </Button>
+            )}
+            <Button
+              view="outlined"
+              size="m"
+              onClick={async () => {
+                await authClient.signOut()
+                window.location.href = "/login"
+              }}
+            >
+              Sign Out
+            </Button>
           </div>
         </div>
-      </nav>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Task Board</h2>
+      {/* Main content */}
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px 32px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 20,
+          }}
+        >
+          <Text variant="header-2">Task Board</Text>
           {canCreate && (
-            <RainbowButton
+            <Button
+              view="action"
+              size="m"
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 text-sm"
             >
               + New Task
-            </RainbowButton>
+            </Button>
           )}
         </div>
 
@@ -262,7 +280,6 @@ function CreateTaskModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
-
     setLoading(true)
     try {
       await onCreate({
@@ -277,102 +294,79 @@ function CreateTaskModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <BlurFade delay={0} inView={false} className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Create New Task</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            ✕
-          </button>
-        </div>
+    <Modal open onClose={onClose}>
+      <Card style={{ width: 560, padding: 24 }} view="clear">
+        <Text variant="header-1" style={{ marginBottom: 20, display: "block" }}>
+          Create New Task
+        </Text>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title *
-            </label>
-            <input
-              type="text"
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <TextInput
+              label="Title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
+              onUpdate={setTitle}
               placeholder="Task title"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              size="l"
+              hasClear
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
+            <TextArea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onUpdate={setDescription}
+              placeholder="Task description (optional)"
               rows={4}
-              placeholder="Task description"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              size="l"
             />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Priority
-              </label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <Select
+                label="Priority"
+                value={[priority]}
+                onUpdate={(vals) => setPriority(vals[0] as TaskPriority)}
+                size="l"
+                width="max"
               >
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
+                <Select.Option value="HIGH">High</Select.Option>
+                <Select.Option value="MEDIUM">Medium</Select.Option>
+                <Select.Option value="LOW">Low</Select.Option>
+              </Select>
+
+              {users.length > 0 && (
+                <Select
+                  label="Assign To"
+                  value={assignedToId ? [assignedToId] : []}
+                  onUpdate={(vals) => setAssignedToId(vals[0] ?? "")}
+                  size="l"
+                  width="max"
+                  options={[
+                    { value: "", content: "Unassigned" },
+                    ...users.map((user) => ({
+                      value: user.id,
+                      content: user.name || user.email,
+                    })),
+                  ]}
+                />
+              )}
             </div>
 
-            {users.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Assign To
-                </label>
-                <select
-                  value={assignedToId}
-                  onChange={(e) => setAssignedToId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="">Unassigned</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name || user.email}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <ShimmerButton
-              type="submit"
-              disabled={loading || !title.trim()}
-              className="px-4 py-2 disabled:opacity-50"
-              background="rgb(79 70 229)"
-            >
-              <span className="relative z-10">{loading ? "Creating..." : "Create Task"}</span>
-            </ShimmerButton>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-            >
-              Cancel
-            </button>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <Button view="outlined" size="l" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                view="action"
+                size="l"
+                loading={loading}
+                disabled={loading || !title.trim()}
+              >
+                Create Task
+              </Button>
+            </div>
           </div>
         </form>
-      </BlurFade>
-    </div>
+      </Card>
+    </Modal>
   )
 }
