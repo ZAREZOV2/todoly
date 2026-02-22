@@ -15,17 +15,22 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
-import type { TaskStatus } from "@prisma/client"
+import type { TaskStatus, TaskPriority } from "@prisma/client"
 import type { TaskWithRelations } from "@/lib/types"
 import { SortableTaskCard } from "./SortableTaskCard"
 import { TaskCard } from "./TaskCard"
 import { useTaskStore } from "@/store/taskStore"
-import { Text, Label } from "@gravity-ui/uikit"
+import { Text, Label, Button, TextInput } from "@gravity-ui/uikit"
 
 interface TaskBoardProps {
   tasks: TaskWithRelations[]
   onTaskClick: (task: TaskWithRelations) => void
   onTaskMove: (taskId: string, newStatus: TaskStatus) => Promise<void>
+  onQuickCreate?: (data: {
+    title: string
+    priority: TaskPriority
+    status?: TaskStatus
+  }) => Promise<void>
 }
 
 const statusColumns: TaskStatus[] = ["TODO", "IN_PROGRESS", "DONE"]
@@ -36,7 +41,7 @@ const columnConfig: Record<TaskStatus, { label: string; labelTheme: "info" | "wa
   DONE: { label: "Done", labelTheme: "success" },
 }
 
-export function TaskBoard({ tasks, onTaskClick, onTaskMove }: TaskBoardProps) {
+export function TaskBoard({ tasks, onTaskClick, onTaskMove, onQuickCreate }: TaskBoardProps) {
   const { filters } = useTaskStore()
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -108,6 +113,7 @@ export function TaskBoard({ tasks, onTaskClick, onTaskMove }: TaskBoardProps) {
             status={status}
             tasks={tasksByStatus[status]}
             onTaskClick={onTaskClick}
+            onQuickCreate={onQuickCreate}
           />
         ))}
       </div>
@@ -126,13 +132,42 @@ function StatusColumn({
   status,
   tasks,
   onTaskClick,
+  onQuickCreate,
 }: {
   status: TaskStatus
   tasks: TaskWithRelations[]
   onTaskClick: (task: TaskWithRelations) => void
+  onQuickCreate?: (data: {
+    title: string
+    priority: TaskPriority
+    status?: TaskStatus
+  }) => Promise<void>
 }) {
   const { setNodeRef } = useDroppable({ id: status })
   const config = columnConfig[status]
+  const [isAdding, setIsAdding] = useState(false)
+  const [newTitle, setNewTitle] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  const handleQuickAdd = async () => {
+    if (!newTitle.trim() || !onQuickCreate) return
+    setSaving(true)
+    try {
+      await onQuickCreate({ title: newTitle.trim(), priority: "MEDIUM", status })
+      setNewTitle("")
+      setIsAdding(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleQuickAdd()
+    if (e.key === "Escape") {
+      setIsAdding(false)
+      setNewTitle("")
+    }
+  }
 
   return (
     <div
@@ -144,6 +179,8 @@ function StatusColumn({
         padding: 12,
         minHeight: 400,
         border: "1px solid var(--g-color-line-generic)",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -152,8 +189,9 @@ function StatusColumn({
           {tasks.length}
         </Label>
       </div>
+
       <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
           {tasks.map((task) => (
             <SortableTaskCard
               key={task.id}
@@ -163,6 +201,56 @@ function StatusColumn({
           ))}
         </div>
       </SortableContext>
+
+      {/* Inline quick-add */}
+      {onQuickCreate && (
+        <div style={{ marginTop: 8 }}>
+          {isAdding ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <TextInput
+                value={newTitle}
+                onUpdate={setNewTitle}
+                placeholder="Task title..."
+                size="m"
+                autoFocus
+                onKeyDown={handleKeyDown}
+                hasClear
+              />
+              <div style={{ display: "flex", gap: 6 }}>
+                <Button
+                  view="action"
+                  size="s"
+                  onClick={handleQuickAdd}
+                  loading={saving}
+                  disabled={saving || !newTitle.trim()}
+                >
+                  Add
+                </Button>
+                <Button
+                  view="flat"
+                  size="s"
+                  onClick={() => {
+                    setIsAdding(false)
+                    setNewTitle("")
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              view="flat"
+              size="s"
+              width="max"
+              onClick={() => setIsAdding(true)}
+              style={{ color: "var(--g-color-text-hint)" }}
+            >
+              + Add task
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

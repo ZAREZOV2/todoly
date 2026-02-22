@@ -3,6 +3,11 @@
 import type { TaskWithRelations } from "@/lib/types"
 import { Card, Text, Label } from "@gravity-ui/uikit"
 
+function isOverdue(date: Date | string | null | undefined, status: string): boolean {
+  if (!date || status === "DONE") return false
+  return new Date(date) < new Date()
+}
+
 interface TaskCardProps {
   task: TaskWithRelations
   onClick: () => void
@@ -59,7 +64,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       )}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {task.assignedTo && (
             <Text variant="caption-2" color="secondary" style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               @ {task.assignedTo.name || task.assignedTo.email}
@@ -67,7 +72,19 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
           )}
           {task.comments.length > 0 && (
             <Text variant="caption-2" color="secondary">
-              {task.comments.length} comment{task.comments.length !== 1 ? "s" : ""}
+              💬 {task.comments.length}
+            </Text>
+          )}
+          {task.dueDate && (
+            <Text
+              variant="caption-2"
+              style={{
+                color: isOverdue(task.dueDate, task.status)
+                  ? "var(--g-color-text-danger)"
+                  : "var(--g-color-text-hint)",
+              }}
+            >
+              📅 {new Date(task.dueDate).toLocaleDateString()}
             </Text>
           )}
         </div>

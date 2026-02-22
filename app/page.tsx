@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import type { TaskWithRelations } from "@/lib/types"
 import type { TaskStatus, TaskPriority } from "@prisma/client"
 import { useTaskStore } from "@/store/taskStore"
+import { useAppTheme } from "@/components/GravityProvider"
 import { TaskBoard } from "@/components/TaskBoard"
 import { TaskModal } from "@/components/TaskModal"
 import { Filters } from "@/components/Filters"
@@ -26,6 +27,7 @@ export default function HomePage() {
   const { data: session, status } = useSessionWithPermissions()
   const router = useRouter()
   const { tasks, setTasks, updateTask, removeTask } = useTaskStore()
+  const { theme, toggleTheme } = useAppTheme()
   const [selectedTask, setSelectedTask] = useState<TaskWithRelations | null>(null)
   const [users, setUsers] = useState<Array<{ id: string; email: string; name: string | null }>>([])
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -63,14 +65,12 @@ export default function HomePage() {
         const data = await response.json()
         setUsers(data)
       }
-    } catch (error) {
-      console.log("Could not load users (may require admin permission)")
+    } catch {
+      // may require admin permission
     }
   }
 
-  const handleTaskClick = (task: TaskWithRelations) => {
-    setSelectedTask(task)
-  }
+  const handleTaskClick = (task: TaskWithRelations) => setSelectedTask(task)
 
   const handleTaskMove = async (taskId: string, newStatus: TaskStatus) => {
     try {
@@ -123,7 +123,9 @@ export default function HomePage() {
     title: string
     description?: string
     priority: TaskPriority
+    status?: TaskStatus
     assignedToId?: string
+    dueDate?: string
   }) => {
     try {
       const response = await fetch("/api/tasks", {
@@ -184,11 +186,22 @@ export default function HomePage() {
           <Text variant="header-1">Todoly</Text>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <Text variant="body-2" color="secondary">
-              {session?.user?.email}
+              {session?.user?.name || session?.user?.email}
             </Text>
+            <Button
+              view="flat"
+              size="m"
+              title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+              onClick={toggleTheme}
+            >
+              {theme === "light" ? "🌙" : "☀️"}
+            </Button>
+            <Button view="outlined" size="m" href="/profile">
+              Profile
+            </Button>
             {(canManageUsers || canManageRoles) && (
               <Button view="outlined" size="m" href="/admin">
-                Admin Panel
+                Admin
               </Button>
             )}
             <Button
@@ -217,22 +230,19 @@ export default function HomePage() {
         >
           <Text variant="header-2">Task Board</Text>
           {canCreate && (
-            <Button
-              view="action"
-              size="m"
-              onClick={() => setShowCreateModal(true)}
-            >
+            <Button view="action" size="m" onClick={() => setShowCreateModal(true)}>
               + New Task
             </Button>
           )}
         </div>
 
-        <Filters />
+        <Filters users={users} />
 
         <TaskBoard
           tasks={tasks}
           onTaskClick={handleTaskClick}
           onTaskMove={handleTaskMove}
+          onQuickCreate={canCreate ? handleCreateTask : undefined}
         />
 
         {selectedTask && (
@@ -267,14 +277,18 @@ function CreateTaskModal({
     title: string
     description?: string
     priority: TaskPriority
+    status?: TaskStatus
     assignedToId?: string
+    dueDate?: string
   }) => Promise<void>
   users: Array<{ id: string; email: string; name: string | null }>
 }) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState<TaskPriority>("MEDIUM")
+  const [status, setStatus] = useState<TaskStatus>("TODO")
   const [assignedToId, setAssignedToId] = useState<string>("")
+  const [dueDate, setDueDate] = useState<string>("")
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -286,7 +300,9 @@ function CreateTaskModal({
         title,
         description: description || undefined,
         priority,
+        status,
         assignedToId: assignedToId || undefined,
+        dueDate: dueDate || undefined,
       })
     } finally {
       setLoading(false)
@@ -309,17 +325,30 @@ function CreateTaskModal({
               placeholder="Task title"
               size="l"
               hasClear
+              autoFocus
             />
 
             <TextArea
               value={description}
               onUpdate={setDescription}
               placeholder="Task description (optional)"
-              rows={4}
+              rows={3}
               size="l"
             />
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <Select
+                label="Status"
+                value={[status]}
+                onUpdate={(vals) => setStatus(vals[0] as TaskStatus)}
+                size="l"
+                width="max"
+              >
+                <Select.Option value="TODO">To Do</Select.Option>
+                <Select.Option value="IN_PROGRESS">In Progress</Select.Option>
+                <Select.Option value="DONE">Done</Select.Option>
+              </Select>
+
               <Select
                 label="Priority"
                 value={[priority]}
@@ -331,7 +360,9 @@ function CreateTaskModal({
                 <Select.Option value="MEDIUM">Medium</Select.Option>
                 <Select.Option value="LOW">Low</Select.Option>
               </Select>
+            </div>
 
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               {users.length > 0 && (
                 <Select
                   label="Assign To"
@@ -348,6 +379,24 @@ function CreateTaskModal({
                   ]}
                 />
               )}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <Text variant="body-2" color="secondary">Due Date</Text>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  style={{
+                    height: 36,
+                    padding: "0 12px",
+                    borderRadius: 6,
+                    border: "1px solid var(--g-color-line-generic)",
+                    background: "var(--g-color-base-background)",
+                    color: "var(--g-color-text-primary)",
+                    fontSize: 14,
+                  }}
+                />
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
