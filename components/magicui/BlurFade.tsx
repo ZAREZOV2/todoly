@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef } from "react"
+import React from "react"
 import {
   AnimatePresence,
   motion,
@@ -38,10 +39,10 @@ export function BlurFade({
   blur = "6px",
   ...props
 }: BlurFadeProps) {
-  const ref = useRef(null)
-  const inViewResult = useInView(ref as React.RefObject<Element>, {
+  const ref = useRef<HTMLDivElement>(null)
+  const inViewResult = useInView(ref, {
     once: true,
-    margin: inViewMargin,
+    margin: inViewMargin as any,
   })
   const isInView = !inView || inViewResult
   const defaultVariants: Variants = {
@@ -61,7 +62,7 @@ export function BlurFade({
   return (
     <AnimatePresence>
       <motion.div
-        ref={ref}
+        ref={ref as React.RefObject<HTMLDivElement>}
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
         exit="hidden"
