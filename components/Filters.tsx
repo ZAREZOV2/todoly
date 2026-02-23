@@ -9,7 +9,11 @@ import {
   Select,
 } from "@gravity-ui/uikit"
 
-export function Filters() {
+interface FiltersProps {
+  users?: Array<{ id: string; email: string; name: string | null }>
+}
+
+export function Filters({ users = [] }: FiltersProps) {
   const { filters, setFilter, clearFilters } = useTaskStore()
 
   return (
@@ -17,7 +21,7 @@ export function Filters() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr auto",
+          gridTemplateColumns: users.length > 0 ? "1fr 1fr 1fr 1fr auto" : "1fr 1fr 1fr auto",
           gap: 12,
           alignItems: "flex-end",
         }}
@@ -60,6 +64,23 @@ export function Filters() {
           <Select.Option value="MEDIUM">Medium</Select.Option>
           <Select.Option value="LOW">Low</Select.Option>
         </Select>
+
+        {users.length > 0 && (
+          <Select
+            label="Assignee"
+            value={filters.assignedTo ? [filters.assignedTo] : []}
+            onUpdate={(vals) => setFilter({ assignedTo: vals[0] || null })}
+            size="m"
+            width="max"
+            placeholder="All Assignees"
+          >
+            {users.map((user) => (
+              <Select.Option key={user.id} value={user.id}>
+                {user.name || user.email}
+              </Select.Option>
+            ))}
+          </Select>
+        )}
 
         <Button view="outlined" size="m" onClick={clearFilters}>
           Clear

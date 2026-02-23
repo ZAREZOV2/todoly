@@ -16,6 +16,21 @@ import {
   Label,
 } from "@gravity-ui/uikit"
 
+function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return ""
+  return new Date(date).toISOString().split("T")[0]
+}
+
+function formatDisplayDate(date: Date | string | null | undefined): string {
+  if (!date) return ""
+  return new Date(date).toLocaleDateString()
+}
+
+function isOverdue(date: Date | string | null | undefined): boolean {
+  if (!date) return false
+  return new Date(date) < new Date()
+}
+
 interface TaskModalProps {
   task: TaskWithRelations | null
   onClose: () => void
@@ -47,6 +62,7 @@ export function TaskModal({ task, onClose, onUpdate, onDelete, users }: TaskModa
   const [status, setStatus] = useState<TaskStatus>("TODO")
   const [priority, setPriority] = useState<TaskPriority>("MEDIUM")
   const [assignedToId, setAssignedToId] = useState<string | null>(null)
+  const [dueDate, setDueDate] = useState<string>("")
   const [loading, setLoading] = useState(false)
 
   const canEdit = session?.user?.permissions?.includes("tasks.update")
@@ -60,6 +76,7 @@ export function TaskModal({ task, onClose, onUpdate, onDelete, users }: TaskModa
       setStatus(task.status)
       setPriority(task.priority)
       setAssignedToId(task.assignedToId)
+      setDueDate(formatDate(task.dueDate))
     }
   }, [task])
 
@@ -74,6 +91,7 @@ export function TaskModal({ task, onClose, onUpdate, onDelete, users }: TaskModa
         status,
         priority,
         assignedToId: assignedToId || null,
+        dueDate: (dueDate || null) as any,
       })
       setIsEditing(false)
     } catch (error) {
@@ -155,19 +173,38 @@ export function TaskModal({ task, onClose, onUpdate, onDelete, users }: TaskModa
               />
             </div>
 
-            {canAssign && (
-              <Select
-                label="Assign To"
-                value={assignedToId ? [assignedToId] : []}
-                onUpdate={(vals) => setAssignedToId(vals[0] || null)}
-                size="l"
-                width="max"
-                options={[
-                  { value: "", content: "Unassigned" },
-                  ...users.map((user) => ({ value: user.id, content: user.name || user.email })),
-                ]}
-              />
-            )}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              {canAssign && (
+                <Select
+                  label="Assign To"
+                  value={assignedToId ? [assignedToId] : []}
+                  onUpdate={(vals) => setAssignedToId(vals[0] || null)}
+                  size="l"
+                  width="max"
+                  options={[
+                    { value: "", content: "Unassigned" },
+                    ...users.map((user) => ({ value: user.id, content: user.name || user.email })),
+                  ]}
+                />
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <Text variant="body-2" color="secondary">Due Date</Text>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  style={{
+                    height: 36,
+                    padding: "0 12px",
+                    borderRadius: 6,
+                    border: "1px solid var(--g-color-line-generic)",
+                    background: "var(--g-color-base-background)",
+                    color: "var(--g-color-text-primary)",
+                    fontSize: 14,
+                  }}
+                />
+              </div>
+            </div>
 
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
               <Button view="outlined" size="l" onClick={() => setIsEditing(false)}>
@@ -214,6 +251,22 @@ export function TaskModal({ task, onClose, onUpdate, onDelete, users }: TaskModa
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Text variant="body-2" color="secondary">Assigned to:</Text>
                   <Text variant="body-2">{task.assignedTo.name || task.assignedTo.email}</Text>
+                </div>
+              )}
+              {task.dueDate && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Text variant="body-2" color="secondary">Due:</Text>
+                  <Text
+                    variant="body-2"
+                    style={{
+                      color: isOverdue(task.dueDate) && task.status !== "DONE"
+                        ? "var(--g-color-text-danger)"
+                        : undefined,
+                    }}
+                  >
+                    {formatDisplayDate(task.dueDate)}
+                    {isOverdue(task.dueDate) && task.status !== "DONE" && " — Overdue"}
+                  </Text>
                 </div>
               )}
             </div>
