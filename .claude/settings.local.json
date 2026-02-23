@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /c/Users/bagrov/Documents/dev/todoly-main status)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git fetch:*)",
+      "Bash(ls:*)",
+      "Bash(neon:*)",
+      "Bash(npx neonctl:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma db pull:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npm run build:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(where:*)",
+      "Bash(command -v npm:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

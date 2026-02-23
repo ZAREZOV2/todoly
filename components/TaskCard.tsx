@@ -1,0 +1,80 @@
+"use client"
+
+import type { TaskWithRelations } from "@/lib/types"
+import { Card, Text, Label } from "@gravity-ui/uikit"
+
+interface TaskCardProps {
+  task: TaskWithRelations
+  onClick: () => void
+  delay?: number
+}
+
+const priorityTheme: Record<string, "danger" | "warning" | "success"> = {
+  HIGH: "danger",
+  MEDIUM: "warning",
+  LOW: "success",
+}
+
+const priorityLabels: Record<string, string> = {
+  HIGH: "High",
+  MEDIUM: "Medium",
+  LOW: "Low",
+}
+
+export function TaskCard({ task, onClick }: TaskCardProps) {
+  return (
+    <Card
+      onClick={onClick}
+      view="outlined"
+      style={{
+        padding: 12,
+        cursor: "pointer",
+        transition: "box-shadow 0.15s ease",
+      }}
+      className="task-card-hover"
+    >
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8, gap: 8 }}>
+        <Text variant="body-2" style={{ fontWeight: 500, flex: 1 }}>
+          {task.title}
+        </Text>
+        <Label theme={priorityTheme[task.priority]} size="xs">
+          {priorityLabels[task.priority]}
+        </Label>
+      </div>
+
+      {task.description && (
+        <Text
+          variant="body-1"
+          color="secondary"
+          style={{
+            marginBottom: 10,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {task.description}
+        </Text>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {task.assignedTo && (
+            <Text variant="caption-2" color="secondary" style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              @ {task.assignedTo.name || task.assignedTo.email}
+            </Text>
+          )}
+          {task.comments.length > 0 && (
+            <Text variant="caption-2" color="secondary">
+              {task.comments.length} comment{task.comments.length !== 1 ? "s" : ""}
+            </Text>
+          )}
+        </div>
+        <Text variant="caption-2" color="hint">
+          {new Date(task.updatedAt).toLocaleDateString()}
+        </Text>
+      </div>
+    </Card>
+  )
+}
