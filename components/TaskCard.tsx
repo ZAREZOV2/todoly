@@ -1,7 +1,7 @@
 "use client"
 
 import type { TaskWithRelations } from "@/lib/types"
-import { Card, Text, Label } from "@gravity-ui/uikit"
+import { Card, Text, Label, Button } from "@gravity-ui/uikit"
 
 function isOverdue(date: Date | string | null | undefined, status: string): boolean {
   if (!date || status === "DONE") return false
@@ -11,6 +11,7 @@ function isOverdue(date: Date | string | null | undefined, status: string): bool
 interface TaskCardProps {
   task: TaskWithRelations
   onClick: () => void
+  onDelete?: (e: React.MouseEvent) => void
   delay?: number
 }
 
@@ -26,7 +27,7 @@ const priorityLabels: Record<string, string> = {
   LOW: "Low",
 }
 
-export function TaskCard({ task, onClick }: TaskCardProps) {
+export function TaskCard({ task, onClick, onDelete }: TaskCardProps) {
   return (
     <Card
       onClick={onClick}
@@ -42,9 +43,21 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         <Text variant="body-2" style={{ fontWeight: 500, flex: 1 }}>
           {task.title}
         </Text>
-        <Label theme={priorityTheme[task.priority]} size="xs">
-          {priorityLabels[task.priority]}
-        </Label>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <Label theme={priorityTheme[task.priority]} size="xs">
+            {priorityLabels[task.priority]}
+          </Label>
+          {onDelete && (
+            <Button
+              view="flat"
+              size="xs"
+              onClick={(e) => { e.stopPropagation(); onDelete(e) }}
+              style={{ color: "var(--g-color-text-hint)", minWidth: 20, height: 20, padding: "0 4px" }}
+            >
+              ✕
+            </Button>
+          )}
+        </div>
       </div>
 
       {task.description && (

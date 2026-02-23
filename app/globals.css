@@ -13,6 +13,11 @@
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family: "Ubuntu Sans", sans-serif;
+}
+
+* {
+  font-family: "Ubuntu Sans", sans-serif;
 }
 
 @layer utilities {

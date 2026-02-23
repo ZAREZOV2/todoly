@@ -22,10 +22,13 @@ import { TaskCard } from "./TaskCard"
 import { useTaskStore } from "@/store/taskStore"
 import { Text, Label, Button, TextInput } from "@gravity-ui/uikit"
 
+const DONE_VISIBLE_LIMIT = 5
+
 interface TaskBoardProps {
   tasks: TaskWithRelations[]
   onTaskClick: (task: TaskWithRelations) => void
   onTaskMove: (taskId: string, newStatus: TaskStatus) => void
+  onTaskDelete?: (taskId: string) => void
   onQuickCreate?: (data: {
     title: string
     priority: TaskPriority
@@ -41,7 +44,7 @@ const columnConfig: Record<TaskStatus, { label: string; labelTheme: "info" | "wa
   DONE: { label: "Done", labelTheme: "success" },
 }
 
-export function TaskBoard({ tasks, onTaskClick, onTaskMove, onQuickCreate }: TaskBoardProps) {
+export function TaskBoard({ tasks, onTaskClick, onTaskMove, onTaskDelete, onQuickCreate }: TaskBoardProps) {
   const { filters } = useTaskStore()
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -105,6 +108,7 @@ export function TaskBoard({ tasks, onTaskClick, onTaskMove, onQuickCreate }: Tas
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 16,
+          alignItems: "start",
         }}
       >
         {statusColumns.map((status) => (
@@ -113,6 +117,7 @@ export function TaskBoard({ tasks, onTaskClick, onTaskMove, onQuickCreate }: Tas
             status={status}
             tasks={tasksByStatus[status]}
             onTaskClick={onTaskClick}
+            onTaskDelete={onTaskDelete}
             onQuickCreate={onQuickCreate}
           />
         ))}
@@ -132,11 +137,13 @@ function StatusColumn({
   status,
   tasks,
   onTaskClick,
+  onTaskDelete,
   onQuickCreate,
 }: {
   status: TaskStatus
   tasks: TaskWithRelations[]
   onTaskClick: (task: TaskWithRelations) => void
+  onTaskDelete?: (taskId: string) => void
   onQuickCreate?: (data: {
     title: string
     priority: TaskPriority
@@ -148,6 +155,13 @@ function StatusColumn({
   const [isAdding, setIsAdding] = useState(false)
   const [newTitle, setNewTitle] = useState("")
   const [saving, setSaving] = useState(false)
+  const [showArchive, setShowArchive] = useState(false)
+
+  // DONE: показываем только последние DONE_VISIBLE_LIMIT, остальные — архив
+  const visibleTasks = status === "DONE" && !showArchive
+    ? tasks.slice(0, DONE_VISIBLE_LIMIT)
+    : tasks
+  const archivedCount = status === "DONE" ? Math.max(0, tasks.length - DONE_VISIBLE_LIMIT) : 0
 
   const handleQuickAdd = async () => {
     if (!newTitle.trim() || !onQuickCreate) return
@@ -177,7 +191,6 @@ function StatusColumn({
         background: "var(--g-color-base-generic)",
         borderRadius: 8,
         padding: 12,
-        minHeight: 400,
         border: "1px solid var(--g-color-line-generic)",
         display: "flex",
         flexDirection: "column",
@@ -190,17 +203,42 @@ function StatusColumn({
         </Label>
       </div>
 
-      <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-          {tasks.map((task) => (
+      {/* Скроллируемый список задач */}
+      <SortableContext items={visibleTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            overflowY: "auto",
+            maxHeight: "calc(100vh - 320px)",
+            minHeight: 80,
+            paddingRight: 2,
+          }}
+        >
+          {visibleTasks.map((task) => (
             <SortableTaskCard
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
+              onDelete={onTaskDelete ? () => onTaskDelete(task.id) : undefined}
             />
           ))}
         </div>
       </SortableContext>
+
+      {/* Кнопка архива для DONE */}
+      {status === "DONE" && archivedCount > 0 && (
+        <Button
+          view="flat"
+          size="s"
+          width="max"
+          onClick={() => setShowArchive((v) => !v)}
+          style={{ marginTop: 8, color: "var(--g-color-text-hint)" }}
+        >
+          {showArchive ? "▲ Скрыть архив" : `▼ Архив (${archivedCount})`}
+        </Button>
+      )}
 
       {/* Inline quick-add */}
       {onQuickCreate && (

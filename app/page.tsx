@@ -251,6 +251,7 @@ export default function HomePage() {
           tasks={tasks}
           onTaskClick={handleTaskClick}
           onTaskMove={handleTaskMove}
+          onTaskDelete={canCreate ? handleTaskDelete : undefined}
           onQuickCreate={canCreate ? handleCreateTask : undefined}
         />
 

@@ -8,10 +8,11 @@ import { TaskCard } from "./TaskCard"
 interface SortableTaskCardProps {
   task: TaskWithRelations
   onClick: () => void
+  onDelete?: (e: React.MouseEvent) => void
   delay?: number
 }
 
-export function SortableTaskCard({ task, onClick }: SortableTaskCardProps) {
+export function SortableTaskCard({ task, onClick, onDelete }: SortableTaskCardProps) {
   const {
     attributes,
     listeners,
@@ -29,7 +30,7 @@ export function SortableTaskCard({ task, onClick }: SortableTaskCardProps) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} onClick={onClick} />
+      <TaskCard task={task} onClick={onClick} onDelete={onDelete} />
     </div>
   )
 }
